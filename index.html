@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f766e">
+<meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0d0d" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Химия">
@@ -13,193 +14,253 @@
 <title>Учёт бытовой химии</title>
 <style>
   :root {
-    --bg: #f5f7f7; --card: #ffffff; --text: #1a2321; --muted: #66736f;
-    --line: #dde4e2; --accent: #0f766e; --on-accent: #ffffff;
-    --warn: #b45309; --warn-soft: #fef3c7; --danger: #b91c1c; --danger-soft: #fee2e2;
-    --radius: 14px;
+    --bg: #f2f3f5; --card: #ffffff; --field: #f4f6f6; --text: #111816; --muted: #6b7673; --faint: #9aa4a1;
+    --line: #e6e9e8; --accent: #0d7c6e; --accent-tonal: #e2f3f0; --accent-ink: #0a5f55; --on-accent: #ffffff;
+    --warn: #c2410c; --warn-tonal: #fff0e5; --danger: #c81e1e; --danger-tonal: #fde8e8;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 2px 8px rgba(16, 24, 40, .05);
+    --bar-bg: rgba(248, 249, 250, .82);
+    --r: 18px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0f1413; --card: #182120; --text: #e6eeec; --muted: #94a3a0;
-      --line: #2a3634; --accent: #2dd4bf; --on-accent: #062421;
-      --warn: #fbbf24; --warn-soft: #3a2c0c; --danger: #f87171; --danger-soft: #3b1515;
+      --bg: #0b0d0d; --card: #171a1a; --field: #202525; --text: #eef2f1; --muted: #8f9b98; --faint: #5f6a67;
+      --line: #262c2b; --accent: #34d1bc; --accent-tonal: #12312d; --accent-ink: #7ee6d6; --on-accent: #04201c;
+      --warn: #fb923c; --warn-tonal: #3a2210; --danger: #f87171; --danger-tonal: #3a1616;
+      --shadow: none; --bar-bg: rgba(18, 21, 21, .82);
     }
   }
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   [hidden] { display: none !important; }
+  html { background: var(--bg); }
   body { margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  .wrap { max-width: 760px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px 80px; }
-  h1 { font-size: 24px; margin: 8px 0 12px; }
-  h2 { font-size: 17px; margin: 0 0 12px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
-  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
-  input, select { width: 100%; padding: 10px 12px; font: inherit; color: var(--text); background: var(--bg);
-    border: 1px solid var(--line); border-radius: 10px; min-height: 44px; }
-  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-  .grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
-  .grid .full { grid-column: 1 / -1; }
-  .section-label { grid-column: 1 / -1; font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 6px;
-    border-top: 1px dashed var(--line); padding-top: 10px; }
-  button { font: inherit; cursor: pointer; border-radius: 10px; padding: 10px 14px; border: 1px solid var(--line);
-    background: var(--card); color: var(--text); }
-  button:disabled { opacity: .4; cursor: default; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
-  button.small { padding: 6px 10px; font-size: 14px; }
-  button.link { border: none; background: none; color: var(--muted); padding: 6px; font-size: 14px; }
-  button.danger { color: var(--danger); }
+    font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; cursor: pointer; border: none; background: none; padding: 0; }
+  button:disabled { opacity: .35; cursor: default; }
+  svg { display: block; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 96px); }
 
-  .tabs { display: flex; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-bottom: 12px; }
-  .tabs button { flex: 1; border: none; background: none; padding: 8px; border-radius: 9px; color: var(--muted); font-weight: 600; }
-  .tabs button.on { background: var(--accent); color: var(--on-accent); }
+  /* Шапка */
+  .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .top h1 { font-size: 32px; line-height: 1.1; letter-spacing: -.02em; margin: 0; font-weight: 800; }
+  .top p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+  .fab { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
+    display: grid; place-items: center; flex: none; box-shadow: var(--shadow); }
+  .fab:active { transform: scale(.94); }
 
-  .banner { background: var(--warn-soft); color: var(--text); border: 1px solid var(--warn); border-radius: var(--radius);
-    padding: 12px 14px; margin-bottom: 12px; font-size: 14px; display: flex; gap: 8px; align-items: flex-start; }
-  .banner b { color: var(--warn); }
-  .banner button { margin-left: auto; flex: none; }
-
-  .soon { border-color: var(--warn); }
-  .soon h2 { color: var(--warn); }
-  .soon-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 15px; gap: 8px; }
-  .soon-row span:last-child { color: var(--muted); white-space: nowrap; }
-
-  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .toolbar input { flex: 1 1 180px; }
-  .toolbar select { flex: 0 1 180px; width: auto; }
-  .item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .item-name { font-weight: 600; font-size: 17px; }
-  .brand { font-size: 14px; color: var(--muted); }
-  .tag { font-size: 12px; color: var(--muted); background: var(--bg); border: 1px solid var(--line);
-    border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
-  .bar { height: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; margin: 10px 0 6px; }
-  .bar > i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
-  .card.low { border-color: var(--warn); } .card.low .bar > i { background: var(--warn); }
-  .card.empty { border-color: var(--danger); } .card.empty .bar > i { background: var(--danger); }
-  .meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--muted); }
-  .meta b { color: var(--text); }
-  .badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
-  .badge.low { background: var(--warn-soft); color: var(--warn); }
-  .badge.empty { background: var(--danger-soft); color: var(--danger); }
-  .use-row { display: flex; gap: 8px; margin-top: 12px; }
-  .use-row input { flex: 1; }
-  .quick { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
-  .actions { display: flex; gap: 2px; margin-top: 6px; flex-wrap: wrap; }
-  .subform { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 12px; }
-  .radios { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
-  .radios label { display: flex; gap: 8px; align-items: center; color: var(--text); font-size: 15px; margin: 0; }
-  .radios input { width: auto; min-height: 0; }
-  .note { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
-  .history { margin-top: 8px; font-size: 14px; border-top: 1px dashed var(--line); padding-top: 8px; }
-  .history .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; color: var(--muted); }
-  .history .row b { color: var(--text); font-weight: 500; text-align: right; }
+  /* Общие блоки */
+  .card { background: var(--card); border-radius: var(--r); box-shadow: var(--shadow); padding: 16px; margin-bottom: 12px; }
+  .section-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 22px 4px 8px; }
   .muted { color: var(--muted); }
-  .center { text-align: center; padding: 28px 16px; }
-  details summary { cursor: pointer; font-weight: 600; }
-  details[open] summary { margin-bottom: 12px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px;
+    border-radius: 12px; font-weight: 600; font-size: 15px; }
+  .btn:active:not(:disabled) { transform: scale(.97); }
+  .btn.primary { background: var(--accent); color: var(--on-accent); }
+  .btn.tonal { background: var(--accent-tonal); color: var(--accent-ink); }
+  .btn.plain { background: var(--field); color: var(--text); }
+  .btn.danger { background: var(--danger-tonal); color: var(--danger); }
+  .btn.block { width: 100%; min-height: 50px; font-size: 17px; border-radius: 14px; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--field); color: var(--muted); flex: none; }
+
+  /* Подсказка для iPhone */
+  .banner { display: flex; gap: 12px; align-items: flex-start; background: var(--warn-tonal); border-radius: var(--r); padding: 14px 16px; margin-bottom: 14px; font-size: 14px; }
+  .banner b { display: block; color: var(--warn); font-size: 15px; margin-bottom: 2px; }
+  .banner .icon-btn { width: 28px; height: 28px; background: none; margin: -4px -6px 0 auto; }
+
+  /* Блок «Скоро закончится» */
+  .soon { background: var(--warn-tonal); border-radius: var(--r); padding: 14px 16px; margin-bottom: 14px; }
+  .soon h2 { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: 15px; color: var(--warn); }
+  .soon-row { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; font-size: 15px; border-top: 1px solid color-mix(in srgb, var(--warn) 15%, transparent); }
+  .soon-row:first-of-type { border-top: none; }
+  .soon-row span:last-child { color: var(--warn); font-weight: 600; white-space: nowrap; }
+
+  /* Фильтры */
+  .search { width: 100%; height: 40px; border-radius: 12px; border: none; background: var(--card); box-shadow: var(--shadow); color: var(--text);
+    font: inherit; padding: 0 14px; margin-bottom: 10px; }
+  .chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 -16px 12px; padding: 2px 16px; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: none; height: 34px; padding: 0 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); font-size: 14px; font-weight: 500; color: var(--muted); }
+  .chip.on { background: var(--text); color: var(--bg); }
+
+  /* Карточка средства */
+  .item { background: var(--card); border-radius: var(--r); box-shadow: var(--shadow); padding: 14px; margin-bottom: 10px; }
+  .item-main { display: flex; gap: 14px; align-items: center; width: 100%; text-align: left; }
+  .ring { position: relative; width: 56px; height: 56px; flex: none; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .track { stroke: var(--field); }
+  .ring .val { stroke: var(--accent); transition: stroke-dashoffset .4s ease; }
+  .st-low .ring .val { stroke: var(--warn); }
+  .st-empty .ring .val { stroke: var(--danger); }
+  .ring span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .item-text { flex: 1; min-width: 0; }
+  .item-title { font-size: 17px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-sub { font-size: 14px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-sub b { color: var(--text); font-weight: 600; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: 13px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+    background: var(--accent-tonal); color: var(--accent-ink); }
+  .pill.none { background: var(--field); color: var(--muted); font-weight: 500; }
+  .pill.low { background: var(--warn-tonal); color: var(--warn); }
+  .pill.empty { background: var(--danger-tonal); color: var(--danger); }
+  .chev { color: var(--faint); flex: none; }
+  .item-actions { display: flex; gap: 8px; margin-top: 12px; }
+  .item-actions .btn { flex: 1; }
+
+  .empty-state { text-align: center; padding: 48px 24px; }
+  .empty-state .emoji { font-size: 44px; margin-bottom: 8px; }
+  .empty-state h2 { font-size: 20px; margin: 0 0 6px; }
+  .empty-state p { color: var(--muted); margin: 0 0 18px; }
+
+  /* Нижняя панель вкладок */
+  .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; display: flex; justify-content: center;
+    background: var(--bar-bg); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-top: .5px solid var(--line); padding-bottom: env(safe-area-inset-bottom); }
+  .tabbar-inner { display: flex; width: 100%; max-width: 640px; }
+  .tabbar button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 0 6px; font-size: 11px; font-weight: 500; color: var(--faint); }
+  .tabbar button.on { color: var(--accent); }
+
+  /* Нижние окна */
+  dialog.sheet { width: 100%; max-width: 560px; max-height: 92vh; margin: auto auto 0; padding: 0; border: none; border-radius: 22px 22px 0 0;
+    background: var(--card); color: var(--text); overflow: auto; overscroll-behavior: contain; }
+  dialog.sheet[open] { animation: up .28s cubic-bezier(.2, .9, .3, 1); }
+  dialog.sheet::backdrop { background: rgba(0, 0, 0, .38); animation: fade .2s; }
+  @keyframes up { from { transform: translateY(100%); } }
+  @keyframes fade { from { opacity: 0; } }
+  @media (min-width: 600px) { dialog.sheet { margin: auto; border-radius: 22px; } }
+  .sheet-in { padding: 8px 20px calc(env(safe-area-inset-bottom) + 20px); }
+  .grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 10px; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .sheet-head h3 { margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .sheet-head small { display: block; font-size: 14px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  .sheet-head .icon-btn { width: 32px; height: 32px; border-radius: 50%; }
+
+  /* Формы */
+  .field { margin-bottom: 12px; }
+  .field > label, .field-label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin: 0 0 6px 2px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  input, select { width: 100%; height: 48px; padding: 0 14px; font: inherit; font-size: 16px; color: var(--text); background: var(--field);
+    border: 1.5px solid transparent; border-radius: 12px; appearance: none; -webkit-appearance: none; }
+  input[type=date] { display: block; line-height: 48px; }
+  select { background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position: calc(100% - 19px) 21px, calc(100% - 14px) 21px; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 34px; }
+  input:focus, select:focus { outline: none; border-color: var(--accent); background-color: var(--card); }
+  .seg { display: flex; background: var(--field); border-radius: 12px; padding: 3px; height: 48px; }
+  .seg label { flex: 1; position: relative; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: grid; place-items: center; height: 100%; border-radius: 9px; font-size: 15px; font-weight: 500; color: var(--muted); cursor: pointer; }
+  .seg input:checked + span { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); font-weight: 600; }
+  .divider { height: 1px; background: var(--line); margin: 6px 0 16px; }
+  .options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .option { display: flex; gap: 12px; align-items: center; padding: 12px 14px; background: var(--field); border-radius: 12px; border: 1.5px solid transparent; cursor: pointer; font-size: 15px; }
+  .option input { width: 20px; height: 20px; flex: none; accent-color: var(--accent); appearance: auto; -webkit-appearance: auto; }
+  .option:has(input:checked) { border-color: var(--accent); background: var(--accent-tonal); }
+  .hint { font-size: 13px; color: var(--muted); margin: -4px 2px 14px; }
+
+  /* Окно списания */
+  .big-input { position: relative; margin-bottom: 12px; }
+  .big-input input { height: 72px; font-size: 34px; font-weight: 700; text-align: center; padding-right: 60px; padding-left: 60px; }
+  .big-input span { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 18px; font-weight: 600; }
+  .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  .quick .btn { min-height: 44px; }
+
+  /* Подробности */
+  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+  .kpi { background: var(--field); border-radius: 14px; padding: 12px; }
+  .kpi b { display: block; font-size: 19px; font-variant-numeric: tabular-nums; }
+  .kpi span { font-size: 13px; color: var(--muted); }
+  .list { background: var(--field); border-radius: 14px; padding: 2px 14px; margin-bottom: 16px; }
+  .list-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 0; font-size: 15px; border-top: 1px solid var(--line); }
+  .list-row:first-child { border-top: none; }
+  .list-row .r { color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .list-row .r.plus { color: var(--accent-ink); }
+  .list-row small { display: block; color: var(--muted); font-size: 13px; }
+  .stack { display: flex; flex-direction: column; gap: 8px; }
+  .stack .btn { min-height: 48px; }
+  .list-row button { color: var(--accent); font-size: 15px; font-weight: 500; padding: 4px 0 4px 10px; }
+  .list-row button.del { color: var(--danger); }
 
   /* Статистика */
+  .hero { padding: 18px; }
+  .hero .label { font-size: 14px; color: var(--muted); }
+  .hero .value { font-size: 38px; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; font-variant-numeric: tabular-nums; }
+  .hero .sub { font-size: 14px; color: var(--muted); margin-top: 2px; }
   .period { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .period b { font-size: 15px; }
-  .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-  .chart-head h2 { margin: 0; }
+  .period b { font-size: 15px; font-weight: 600; }
+  .period .icon-btn { background: var(--card); box-shadow: var(--shadow); color: var(--text); }
+  .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 14px; }
+  .chart-head h2 { margin: 0; font-size: 17px; }
   .readout { font-size: 14px; color: var(--muted); text-align: right; }
   .readout b { color: var(--text); }
-  .cols { display: flex; align-items: flex-end; gap: 2px; height: 160px; border-bottom: 1px solid var(--line); }
-  .cols button { flex: 1; height: 100%; display: flex; align-items: flex-end; padding: 0; border: none; background: none; border-radius: 0; }
-  .cols button i { display: block; width: 100%; max-width: 28px; margin: 0 auto; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 0; }
-  .cols button.sel i, .cols button:hover i { outline: 2px solid var(--text); outline-offset: 1px; }
-  .col-labels { display: flex; gap: 2px; margin-top: 4px; }
+  .cols { display: flex; align-items: flex-end; gap: 2px; height: 150px; border-bottom: 1px solid var(--line); }
+  .cols button { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+  .cols button i { display: block; width: 72%; max-width: 26px; background: var(--accent); border-radius: 4px 4px 0 0; opacity: .9; }
+  .cols button.sel i { opacity: 1; box-shadow: 0 0 0 2px var(--card), 0 0 0 4px var(--text); }
+  .col-labels { display: flex; gap: 2px; margin-top: 6px; }
   .col-labels span { flex: 1; text-align: center; font-size: 11px; color: var(--muted); }
-  .hbar { display: grid; grid-template-columns: minmax(90px, 35%) 1fr auto; gap: 8px; align-items: center; padding: 5px 0; font-size: 14px; }
-  .hbar .track { height: 12px; }
-  .hbar .track i { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; }
-  .hbar .val { font-variant-numeric: tabular-nums; }
-  .cmp { padding: 8px 0; border-top: 1px dashed var(--line); }
-  .cmp:first-of-type { border-top: none; }
-  .cmp-title { font-weight: 600; margin-bottom: 4px; }
-  .cmp .hbar .sub { display: block; font-size: 12px; color: var(--muted); }
-  .best { font-size: 11px; font-weight: 700; color: var(--accent); margin-left: 4px; }
+  .hbar { display: grid; grid-template-columns: minmax(96px, 38%) 1fr auto; gap: 10px; align-items: center; padding: 7px 0; font-size: 15px; }
+  .hbar .track { height: 10px; }
+  .hbar .track i { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 2px; }
+  .hbar .v { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .hbar small { display: block; font-size: 12px; color: var(--muted); }
+  .cmp + .cmp { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 10px; }
+  .cmp-title { font-weight: 600; margin-bottom: 2px; }
+  .best { display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent-ink); background: var(--accent-tonal); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 1px; }
 
-  .footer { margin-top: 24px; }
-  .footer .card { padding: 12px 16px; }
-  .cat-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
-  .file-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
-  .toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--text); color: var(--bg);
-    padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100% - 32px); }
-  .toast.show { opacity: 1; }
-  @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } .grid .half-sm { grid-column: auto; } }
+  .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 76px); transform: translate(-50%, 8px); z-index: 20;
+    background: var(--text); color: var(--bg); padding: 11px 18px; border-radius: 14px; font-size: 15px; font-weight: 500;
+    opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; max-width: calc(100% - 32px); text-align: center; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (max-width: 380px) { .quick { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>🧴 Бытовая химия</h1>
-  <div id="banner"></div>
-  <div class="tabs">
-    <button data-tab="stock" class="on">Остатки</button>
-    <button data-tab="stats">Статистика</button>
-  </div>
-
-  <main id="stockView">
+  <section id="stockView">
+    <header class="top">
+      <div><h1>Химия</h1><p id="summary"></p></div>
+      <button class="fab" id="addBtn" aria-label="Добавить средство"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+    </header>
+    <div id="banner"></div>
     <div id="soon"></div>
-
-    <details class="card" id="addBox">
-      <summary>➕ Добавить средство</summary>
-      <form id="addForm" class="grid" autocomplete="off">
-        <div class="full">
-          <label for="fName">Для чего (назначение)</label>
-          <input id="fName" required placeholder="Например, Средство для посуды">
-        </div>
-        <div class="full">
-          <label for="fCat">Категория</label>
-          <select id="fCat" class="cat-select"></select>
-        </div>
-        <div class="section-label">Первая покупка</div>
-        <div class="full">
-          <label for="fBrand">Бренд / товар</label>
-          <input id="fBrand" placeholder="Fairy Лимон">
-        </div>
-        <div>
-          <label for="fAmount">Объём</label>
-          <input id="fAmount" type="number" inputmode="decimal" min="0.01" step="any" required placeholder="500">
-        </div>
-        <div>
-          <label for="fUnit">Единица</label>
-          <select id="fUnit"><option>мл</option><option>г</option><option>шт</option></select>
-        </div>
-        <div>
-          <label for="fPrice">Цена, ₽</label>
-          <input id="fPrice" type="number" inputmode="decimal" min="0" step="any" required placeholder="250">
-        </div>
-        <div>
-          <label for="fDate">Дата покупки</label>
-          <input id="fDate" type="date" required>
-        </div>
-        <div class="full"><button class="primary" type="submit">Сохранить</button></div>
-      </form>
-    </details>
-
-    <div class="toolbar" id="toolbar">
-      <input id="search" type="search" placeholder="Поиск…">
-      <select id="filterCat"></select>
-    </div>
+    <input id="search" class="search" type="search" placeholder="Поиск" hidden>
+    <div id="chips" class="chips" hidden></div>
     <div id="list"></div>
-  </main>
+  </section>
 
-  <main id="statsView" hidden></main>
+  <section id="statsView" hidden></section>
 
-  <div class="footer">
-    <details class="card" id="catBox">
-      <summary>🏷️ Категории</summary>
-      <div id="catList"></div>
-      <button class="small" id="addCatBtn" style="margin-top:8px">+ Новая категория</button>
-    </details>
-    <div class="file-btns">
-      <button class="link" id="exportBtn">Экспорт в файл</button>
-      <button class="link" id="importBtn">Импорт из файла</button>
-      <input type="file" id="importFile" accept="application/json,.json" hidden>
+  <section id="moreView" hidden>
+    <header class="top"><div><h1>Ещё</h1></div></header>
+    <div class="section-title">Категории</div>
+    <div class="card" style="padding:2px 16px" id="catList"></div>
+    <button class="btn tonal block" id="addCatBtn">Новая категория</button>
+    <div class="section-title">Данные</div>
+    <div class="card" style="padding:2px 16px">
+      <div class="list-row"><span>Сохранить копию в файл<small>Для переноса на другой телефон</small></span><button id="exportBtn">Экспорт</button></div>
+      <div class="list-row"><span>Загрузить из файла<small>Заменит текущие данные</small></span><button id="importBtn">Импорт</button></div>
     </div>
-  </div>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+    <p class="muted" style="font-size:13px;margin:16px 4px">Данные хранятся только на этом устройстве. Чтобы Safari их не стёр, откройте приложение с ярлыка на экране «Домой».</p>
+  </section>
 </div>
+
+<nav class="tabbar"><div class="tabbar-inner">
+  <button data-tab="stock" class="on">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M9 3h6v3l1.5 2.2c.3.5.5 1 .5 1.6V19a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9.8c0-.6.2-1.1.5-1.6L9 6V3Z"/><path d="M7 13h10"/></svg>
+    Остатки</button>
+  <button data-tab="stats">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>
+    Статистика</button>
+  <button data-tab="more">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><circle cx="5.5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18.5" cy="12" r="1.8"/></svg>
+    Ещё</button>
+</div></nav>
+
+<dialog class="sheet" id="sheet"><div class="sheet-in">
+  <div class="grabber"></div>
+  <div class="sheet-head"><h3 id="sheetTitle"></h3>
+    <button class="icon-btn" id="sheetClose" aria-label="Закрыть"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div id="sheetBody"></div>
+</div></dialog>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -209,9 +270,15 @@ const REMIND_BEFORE = 5;    // событие в Календаре за N дн�
 const REMIND_HOUR = 10;
 const DAY = 864e5;
 const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+const UNITS = ['мл', 'г', 'шт'];
+const ICON = {
+  bell: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2.2 2.2 0 0 0 4 0"/></svg>',
+  chev: '<svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m1 1 6 6-6 6"/></svg>',
+  warn: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5 1.5 21h21L12 2.5Zm-1 7h2v6h-2v-6Zm0 8h2v2h-2v-2Z"/></svg>',
+};
 
 let state = load();
-const ui = { tab: 'stock', history: new Set(), buy: new Set(), periodEnd: 0, selMonth: null };
+const ui = { tab: 'stock', cat: '*', periodEnd: 0, selMonth: null, sheet: null };
 
 // ---------- хранение ----------
 function load() {
@@ -225,7 +292,7 @@ function load() {
 }
 function migrateV1(v1) {
   const items = v1.items.map(it => {
-    const packs = it.packs.map((p, i) => ({ id: uid(), brand: '', unit: it.unit, amount: p.amount, price: p.price, date: p.date }));
+    const packs = it.packs.map(p => ({ id: uid(), brand: '', unit: it.unit, amount: p.amount, price: p.price, date: p.date }));
     const last = packs[packs.length - 1];
     packs.slice(0, -1).forEach((p, i) => { p.finishedAt = packs[i + 1].date; p.merged = true; });
     last.carry = packs.slice(0, -1).reduce((s, p) => s + p.amount, 0);
@@ -250,13 +317,15 @@ const todayInput = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d
 // Дата из поля: сегодня — текущий момент, иначе полдень выбранного дня
 const fromInput = v => v === todayInput() ? new Date().toISOString() : new Date(v + 'T12:00').toISOString();
 const daysBetween = (a, b) => (new Date(b) - new Date(a)) / DAY;
-const dayWord = n => { n = Math.abs(Math.round(n)); const a = n % 10, b = n % 100;
-  return a === 1 && b !== 11 ? 'день' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'дня' : 'дней'; };
+const plural = (n, one, few, many) => { n = Math.abs(Math.round(n)); const a = n % 10, b = n % 100;
+  return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; };
+const dayWord = n => plural(n, 'день', 'дня', 'дней');
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2400);
 }
+const findItem = id => state.items.find(i => i.id === id);
 
 // ---------- расчёты ----------
 const curPack = item => item.packs[item.packs.length - 1];
@@ -309,17 +378,34 @@ function status(item) {
   return f && f.days < SOON_DAYS ? 'low' : '';
 }
 
-function forecastText(f) {
-  if (!f) return 'прогноз появится после первых списаний';
+function forecastShort(f) {
+  if (!f) return 'нет прогноза';
   if (f.basis === 'empty') return 'закончилось';
-  if (f.days < 0.5) return 'по прогнозу уже должно закончиться';
+  if (f.days < 0.5) return 'пора покупать';
   const d = Math.round(f.days);
-  return `хватит примерно на ${d} ${dayWord(d)}`;
+  return `≈ ${d} ${dayWord(d)}`;
 }
 
-// ---------- отрисовка: общие ----------
-function catOptions(selected, { withNew = true, withNone = true } = {}) {
-  return (withNone ? `<option value="">Без категории</option>` : '') +
+// ---------- нижнее окно ----------
+const sheet = document.getElementById('sheet');
+function openSheet(title, html, ctx = {}) {
+  ui.sheet = ctx;
+  document.getElementById('sheetTitle').innerHTML = title;
+  document.getElementById('sheetBody').innerHTML = html;
+  if (!sheet.open) sheet.showModal();
+  sheet.scrollTop = 0;
+  const auto = sheet.querySelector('[data-autofocus]');
+  if (auto) setTimeout(() => auto.focus(), 280);
+}
+function closeSheet() { if (sheet.open) sheet.close(); }
+sheet.addEventListener('close', () => { ui.sheet = null; });
+sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+document.getElementById('sheetClose').onclick = closeSheet;
+
+const unitSeg = (name, selected) => `<div class="seg">${UNITS.map(u =>
+  `<label><input type="radio" name="${name}" value="${u}" ${u === selected ? 'checked' : ''}><span>${u}</span></label>`).join('')}</div>`;
+function catOptions(selected, withNew = true) {
+  return `<option value="">Без категории</option>` +
     state.categories.map(c => `<option ${c === selected ? 'selected' : ''}>${esc(c)}</option>`).join('') +
     (withNew ? `<option value="__new">+ Новая категория…</option>` : '');
 }
@@ -330,129 +416,169 @@ function addCategory() {
   return name;
 }
 
+function sheetAdd() {
+  openSheet('Новое средство', `<form id="addForm" autocomplete="off">
+    <div class="field"><label>Для чего</label><input name="name" required placeholder="Например, средство для посуды" data-autofocus></div>
+    <div class="field"><label>Категория</label><select name="cat" class="cat-select">${catOptions('')}</select></div>
+    <div class="divider"></div>
+    <div class="field"><label>Что купили</label><input name="brand" placeholder="Бренд, например Fairy Лимон"></div>
+    <div class="field"><span class="field-label">Единица</span>${unitSeg('unit', 'мл')}</div>
+    <div class="row">
+      <div class="field"><label>Объём</label><input name="amount" type="number" inputmode="decimal" min="0.01" step="any" required placeholder="500"></div>
+      <div class="field"><label>Цена, ₽</label><input name="price" type="number" inputmode="decimal" min="0" step="any" required placeholder="250"></div>
+    </div>
+    <div class="field"><label>Дата покупки</label><input name="date" type="date" required value="${todayInput()}"></div>
+    <button class="btn primary block" type="submit">Добавить</button>
+  </form>`, { kind: 'add' });
+}
+
+function sheetUse(item) {
+  const ps = packState(item), u = ps.pack.unit;
+  const quick = u === 'шт' ? [1, 2, 3, 5] : [10, 25, 50, 100];
+  openSheet(`${esc(item.name)}<small>Осталось ${fmt(ps.remaining)} ${u}</small>`, `<form id="useForm" autocomplete="off">
+    <div class="big-input"><input name="amount" type="number" inputmode="decimal" min="0.01" step="any" required placeholder="0" aria-label="Сколько израсходовали" data-autofocus><span>${u}</span></div>
+    <div class="quick">${quick.map(v => `<button type="button" class="btn plain" data-quick="${v}">${v} ${u}</button>`).join('')}</div>
+    <button class="btn primary block" type="submit">Списать</button>
+  </form>`, { kind: 'use', id: item.id });
+}
+
+function sheetBuy(item) {
+  const ps = packState(item), p = ps.pack;
+  openSheet(`Новая упаковка<small>${esc(item.name)}</small>`, `<form id="buyForm" autocomplete="off">
+    <div class="field"><label>Что купили</label><input name="brand" value="${esc(p.brand)}" placeholder="Бренд"></div>
+    <div class="field"><span class="field-label">Единица</span>${unitSeg('unit', p.unit)}</div>
+    <div class="row">
+      <div class="field"><label>Объём</label><input name="amount" type="number" inputmode="decimal" min="0.01" step="any" required value="${p.amount}"></div>
+      <div class="field"><label>Цена, ₽</label><input name="price" type="number" inputmode="decimal" min="0" step="any" required value="${p.price}"></div>
+    </div>
+    <div class="field"><label>Дата покупки</label><input name="date" type="date" required value="${todayInput()}"></div>
+    ${ps.remaining > 0 ? `<div class="field-label">Старая упаковка закончилась?</div>
+    <div class="options">
+      <label class="option"><input type="radio" name="old" value="finished" required> Да, закончилась</label>
+      <label class="option"><input type="radio" name="old" value="left"> Нет, осталось ~${fmt(ps.remaining)} ${p.unit} — прибавить к новой</label>
+    </div>
+    <p class="hint">Если единица новой упаковки другая, остаток старой спишется.</p>` : ''}
+    <button class="btn primary block" type="submit">Сохранить покупку</button>
+  </form>`, { kind: 'buy', id: item.id });
+}
+
+function sheetDetails(item) {
+  const ps = packState(item), f = forecast(item), p = ps.pack, life = lifetimes(item);
+  const avgLife = life.length ? life.reduce((s, l) => s + l.days, 0) / life.length : null;
+  const perMonth = life.length ? life.reduce((s, l) => s + l.perMonth, 0) / life.length : null;
+  const canUndo = ps.usages.some(x => !x.writeoff);
+  const events = [
+    ...item.packs.map(x => ({ date: x.date, html: `<span>Покупка · ${esc(x.brand || 'Без названия')}<small>${fmtDate(x.date)} · ${rub(x.price)}</small></span><span class="r plus">+${fmt(x.amount)} ${x.unit}</span>` })),
+    ...item.usages.map(u => { const x = item.packs.find(q => q.id === u.packId);
+      return { date: u.date, html: `<span>${u.writeoff ? 'Закончилась' : 'Расход'}<small>${fmtDate(u.date)}</small></span><span class="r">−${fmt(u.amount)} ${x ? x.unit : ''}</span>` }; })
+  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 40);
+
+  openSheet(`${esc(item.name)}<small>${esc(p.brand || 'Без названия')}${item.category ? ' · ' + esc(item.category) : ''}</small>`, `
+    <div class="kpis">
+      <div class="kpi"><b>${fmt(ps.remaining)} ${p.unit}</b><span>осталось из ${fmt(ps.start)}</span></div>
+      <div class="kpi"><b>${forecastShort(f)}</b><span>прогноз</span></div>
+      <div class="kpi"><b>${avgLife ? Math.round(avgLife) + ' ' + dayWord(avgLife) : '—'}</b><span>живёт упаковка</span></div>
+      <div class="kpi"><b>${perMonth ? rub(perMonth) : '—'}</b><span>в месяц</span></div>
+    </div>
+    <div class="stack" style="margin-bottom:16px">
+      <button class="btn tonal" data-do="remind" ${f && f.basis !== 'empty' ? '' : 'disabled'}>${ICON.bell} Напомнить в Календаре</button>
+    </div>
+    <div class="field-label">История</div>
+    <div class="list">${events.map(e => `<div class="list-row">${e.html}</div>`).join('')}</div>
+    <div class="field-label">Изменить</div>
+    <form id="editForm" autocomplete="off">
+      <div class="field"><input name="name" required value="${esc(item.name)}" aria-label="Название"></div>
+      <div class="field"><select name="cat" class="cat-select" aria-label="Категория">${catOptions(item.category)}</select></div>
+      <button class="btn plain block" type="submit" style="margin-bottom:16px">Сохранить изменения</button>
+    </form>
+    <div class="stack">
+      <button class="btn plain" data-do="undo" ${canUndo ? '' : 'disabled'}>Отменить последнее списание</button>
+      <button class="btn plain" data-do="unbuy" ${item.packs.length > 1 ? '' : 'disabled'}>Отменить последнюю покупку</button>
+      <button class="btn danger" data-do="delete">Удалить средство</button>
+    </div>`, { kind: 'details', id: item.id });
+}
+
+// ---------- отрисовка ----------
 function renderBanner() {
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
   let dismissed = false;
   try { dismissed = localStorage.getItem('chem-banner-off') === '1'; } catch {}
   const el = document.getElementById('banner');
   if (!ios || navigator.standalone || dismissed) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="banner"><div><b>Добавьте на экран «Домой».</b> Нажмите «Поделиться» ⬆️ → «На экран „Домой“».
-    Иначе Safari может стереть данные, если не открывать приложение 7 дней.</div>
-    <button class="link" id="bannerOff" aria-label="Скрыть">✕</button></div>`;
+  el.innerHTML = `<div class="banner"><div><b>Добавьте на экран «Домой»</b>«Поделиться» → «На экран „Домой“». Иначе Safari может стереть данные, если не открывать приложение 7 дней.</div>
+    <button class="icon-btn" id="bannerOff" aria-label="Скрыть"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
   document.getElementById('bannerOff').onclick = () => { try { localStorage.setItem('chem-banner-off', '1'); } catch {} renderBanner(); };
 }
 
-function renderCats() {
-  document.getElementById('fCat').innerHTML = catOptions(document.getElementById('fCat').value);
-  const fc = document.getElementById('filterCat'), cur = fc.options.length ? fc.value : '*';
-  fc.innerHTML = `<option value="*">Все категории</option>` + catOptions(cur, { withNew: false });
-  fc.value = [...fc.options].some(o => o.value === cur) ? cur : '*';
-  fc.hidden = !state.categories.length;
-  document.getElementById('catList').innerHTML = state.categories.length
-    ? state.categories.map((c, i) => `<div class="cat-row"><span>${esc(c)}</span>
-        <span><button class="link" data-cat-rename="${i}">Переименовать</button><button class="link danger" data-cat-del="${i}">Удалить</button></span></div>`).join('')
-    : '<div class="muted" style="font-size:14px">Категорий пока нет</div>';
+function ring(ratio) {
+  const r = 24, c = 2 * Math.PI * r;
+  return `<div class="ring"><svg width="56" height="56" viewBox="0 0 56 56">
+    <circle class="track" cx="28" cy="28" r="${r}" fill="none" stroke-width="6"/>
+    <circle class="val" cx="28" cy="28" r="${r}" fill="none" stroke-width="6" stroke-linecap="round"
+      stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${(c * (1 - ratio)).toFixed(2)}" ${ratio <= 0 ? 'stroke-opacity="0"' : ''}/>
+  </svg><span>${Math.round(ratio * 100)}%</span></div>`;
 }
 
-// ---------- вкладка «Остатки» ----------
-function renderSoon() {
-  const rows = state.items.map(it => ({ it, f: forecast(it), st: status(it) }))
-    .filter(r => r.st).sort((a, b) => (a.f?.days ?? 0) - (b.f?.days ?? 0));
-  document.getElementById('soon').innerHTML = rows.length ? `<div class="card soon"><h2>⚠️ Скоро закончится</h2>
-    ${rows.map(({ it, f, st }) => `<div class="soon-row"><span>${esc(it.name)}</span>
-      <span>${st === 'empty' ? 'закончилось' : f.days < 0.5 ? 'пора покупать' : '≈ ' + Math.round(f.days) + ' ' + dayWord(f.days)}</span></div>`).join('')}
-  </div>` : '';
-}
+function renderStock() {
+  const rows = state.items.map(it => ({ it, f: forecast(it), ps: packState(it), st: status(it) }));
+  const soon = rows.filter(r => r.st).sort((a, b) => (a.f?.days ?? 0) - (b.f?.days ?? 0));
+  const n = state.items.length;
+  document.getElementById('summary').textContent = !n ? 'Учёт бытовой химии'
+    : `${n} ${plural(n, 'средство', 'средства', 'средств')} · ` + (soon.length ? `${soon.length} скоро закончится` : 'всего хватает');
 
-function renderList() {
-  const q = document.getElementById('search').value.trim().toLowerCase();
-  const cat = document.getElementById('filterCat').value;
-  document.getElementById('toolbar').hidden = state.items.length < 4 && !q;
-  const items = state.items
-    .filter(it => (!q || (it.name + ' ' + it.packs.map(p => p.brand).join(' ')).toLowerCase().includes(q))
-      && (cat === '*' || !cat && !it.category || it.category === cat))
-    .map(it => ({ it, f: forecast(it), ps: packState(it), st: status(it) }))
+  document.getElementById('soon').innerHTML = soon.length ? `<div class="soon"><h2>${ICON.warn} Скоро закончится</h2>
+    ${soon.map(({ it, f }) => `<div class="soon-row"><span>${esc(it.name)}</span><span>${forecastShort(f)}</span></div>`).join('')}</div>` : '';
+
+  // фильтры
+  const search = document.getElementById('search');
+  search.hidden = n < 6 && !search.value;
+  const chips = document.getElementById('chips');
+  const usedCats = state.categories.filter(c => state.items.some(i => i.category === c));
+  if (ui.cat !== '*' && !usedCats.includes(ui.cat)) ui.cat = '*';
+  chips.hidden = usedCats.length < 2;
+  chips.innerHTML = ['*', ...usedCats].map(c => `<button class="chip ${c === ui.cat ? 'on' : ''}" data-cat="${esc(c)}">${c === '*' ? 'Все' : esc(c)}</button>`).join('');
+
+  const q = search.value.trim().toLowerCase();
+  const list = rows
+    .filter(r => (!q || (r.it.name + ' ' + r.it.packs.map(p => p.brand).join(' ')).toLowerCase().includes(q))
+      && (ui.cat === '*' || r.it.category === ui.cat))
     .sort((a, b) => (a.f ? a.f.days : 1e9) - (b.f ? b.f.days : 1e9) || a.it.name.localeCompare(b.it.name));
 
-  const list = document.getElementById('list');
-  if (!state.items.length) { list.innerHTML = `<div class="card center muted">Пока пусто. Нажмите «Добавить средство».</div>`; return; }
-  if (!items.length) { list.innerHTML = `<div class="card center muted">Ничего не найдено</div>`; return; }
-  list.innerHTML = items.map(r => cardHtml(r)).join('');
+  const el = document.getElementById('list');
+  if (!n) {
+    el.innerHTML = `<div class="card empty-state"><div class="emoji">🧴</div><h2>Пока пусто</h2>
+      <p>Добавьте первое средство — например, гель для стирки или средство для посуды.</p>
+      <button class="btn primary" data-empty-add style="min-height:46px;padding:0 22px">Добавить средство</button></div>`;
+    return;
+  }
+  if (!list.length) { el.innerHTML = `<div class="card empty-state"><p style="margin:0">Ничего не найдено</p></div>`; return; }
+  el.innerHTML = list.map(({ it, f, ps, st }) => {
+    const p = ps.pack, ratio = ps.start ? ps.remaining / ps.start : 0;
+    return `<article class="item ${st ? 'st-' + st : ''}" data-id="${it.id}">
+      <button class="item-main" data-act="details">
+        ${ring(ratio)}
+        <div class="item-text">
+          <div class="item-title">${esc(it.name)}</div>
+          <div class="item-sub"><b>${fmt(ps.remaining)}</b> из ${fmt(ps.start)} ${p.unit} · ${esc(p.brand || 'Без названия')}</div>
+          <span class="pill ${f ? st : 'none'}">${forecastShort(f)}</span>
+        </div>
+        <span class="chev">${ICON.chev}</span>
+      </button>
+      <div class="item-actions">
+        <button class="btn tonal" data-act="use" ${ps.remaining > 0 ? '' : 'disabled'}>Списать</button>
+        <button class="btn plain" data-act="buy">Купил новую</button>
+        <button class="icon-btn" data-act="remind" aria-label="Напомнить в Календаре" ${f && f.basis !== 'empty' ? '' : 'disabled'}>${ICON.bell}</button>
+      </div>
+    </article>`;
+  }).join('');
 }
 
-function cardHtml({ it, f, ps, st }) {
-  const p = ps.pack, u = p.unit;
-  const ratio = ps.start ? ps.remaining / ps.start : 0;
-  const badge = st === 'empty' ? '<span class="badge empty">закончилось</span>' : st === 'low' ? '<span class="badge low">скоро закончится</span>' : '';
-  const quick = u === 'шт' ? [1, 2, 3] : [10, 50, 100];
-  const canUndo = ps.usages.some(x => !x.writeoff);
-  return `<div class="card ${st}" data-id="${it.id}">
-    <div class="item-head"><span class="item-name">${esc(it.name)}</span>${it.category ? `<span class="tag">${esc(it.category)}</span>` : ''}</div>
-    <div class="brand">${esc(p.brand || 'Без названия')} · ${fmt(p.amount)} ${u} · ${rub(p.price)}</div>
-    <div class="bar"><i style="width:${(ratio * 100).toFixed(1)}%"></i></div>
-    <div class="meta"><span>Остаток: <b>${fmt(ps.remaining)} ${u}</b> из ${fmt(ps.start)} ${badge}</span><span>${forecastText(f)}</span></div>
-    ${ps.remaining > 0 ? `<form class="use-row" data-act="use">
-      <input name="amount" type="number" inputmode="decimal" min="0.01" step="any" placeholder="Израсходовал, ${u}" required>
-      <button class="primary" type="submit">Списать</button></form>
-    <div class="quick">${quick.map(v => `<button class="small" data-act="quick" data-v="${v}">−${v} ${u}</button>`).join('')}</div>` : ''}
-    <div class="actions">
-      <button class="link" data-act="buy">🛒 Купил новую</button>
-      <button class="link" data-act="remind" ${f && f.basis !== 'empty' ? '' : 'disabled'}>🔔 Напомнить</button>
-      <button class="link" data-act="history">${ui.history.has(it.id) ? 'Скрыть историю' : 'История'}</button>
-      <button class="link" data-act="undo" ${canUndo ? '' : 'disabled'}>↩︎ Отменить списание</button>
-    </div>
-    ${ui.buy.has(it.id) ? buyFormHtml(it, ps) : ''}
-    ${ui.history.has(it.id) ? historyHtml(it) : ''}
-  </div>`;
-}
-
-function buyFormHtml(it, ps) {
-  const p = ps.pack;
-  return `<form class="subform grid" data-act="buy-submit" autocomplete="off">
-    <div class="full"><label>Бренд / товар</label><input name="brand" value="${esc(p.brand)}"></div>
-    <div><label>Объём</label><input name="amount" type="number" inputmode="decimal" min="0.01" step="any" required value="${p.amount}"></div>
-    <div><label>Единица</label><select name="unit">${['мл', 'г', 'шт'].map(x => `<option ${x === p.unit ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
-    <div><label>Цена, ₽</label><input name="price" type="number" inputmode="decimal" min="0" step="any" required value="${p.price}"></div>
-    <div><label>Дата покупки</label><input name="date" type="date" required value="${todayInput()}"></div>
-    ${ps.remaining > 0 ? `<div class="section-label">Старая упаковка закончилась?</div>
-    <div class="radios">
-      <label><input type="radio" name="old" value="finished" required> Да, закончилась</label>
-      <label><input type="radio" name="old" value="left"> Нет, ещё осталось ~${fmt(ps.remaining)} ${p.unit} — прибавить к новой</label>
-    </div>
-    <div class="note">Если единица у новой упаковки другая, остаток старой прибавить не получится — он спишется.</div>` : ''}
-    <div class="full" style="display:flex;gap:8px"><button class="primary" type="submit" style="flex:1">Сохранить покупку</button>
-      <button type="button" data-act="buy-cancel">Отмена</button></div>
-  </form>`;
-}
-
-function historyHtml(it) {
-  const events = [
-    ...it.packs.map(p => ({ date: p.date, html: `<span>🛒 ${fmtDate(p.date)} · ${esc(p.brand || 'Без названия')}</span><b>+${fmt(p.amount)} ${p.unit} · ${rub(p.price)}</b>` })),
-    ...it.usages.map(u => { const p = it.packs.find(x => x.id === u.packId);
-      return { date: u.date, html: `<span>${fmtDate(u.date)}${u.writeoff ? ' · закончилась' : ''}</span><b>−${fmt(u.amount)} ${p ? p.unit : ''}</b>` }; })
-  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 30);
-  const life = lifetimes(it);
-  return `<div class="history">
-    ${life.length ? `<div class="row"><span>Упаковка в среднем живёт</span><b>${Math.round(life.reduce((s, l) => s + l.days, 0) / life.length)} дн.</b></div>` : ''}
-    ${events.map(e => `<div class="row">${e.html}</div>`).join('')}
-    <div class="actions">
-      <button class="link" data-act="rename">Переименовать</button>
-      <button class="link" data-act="recat">Сменить категорию</button>
-      <button class="link" data-act="unbuy" ${it.packs.length > 1 ? '' : 'disabled'}>Отменить последнюю покупку</button>
-      <button class="link danger" data-act="delete">Удалить средство</button>
-    </div></div>`;
-}
-
-// ---------- вкладка «Статистика» ----------
 function monthKey(d) { d = new Date(d); return d.getFullYear() * 12 + d.getMonth(); }
-function purchases() {
-  return state.items.flatMap(it => it.packs.map(p => ({ item: it, pack: p, month: monthKey(p.date) })));
-}
 
 function renderStats() {
   const nowKey = monthKey(Date.now());
   const end = nowKey + ui.periodEnd * 12, start = end - 11;
-  const all = purchases();
+  const all = state.items.flatMap(it => it.packs.map(p => ({ item: it, pack: p, month: monthKey(p.date) })));
   const inPeriod = all.filter(x => x.month >= start && x.month <= end);
   const months = Array.from({ length: 12 }, (_, i) => {
     const k = start + i;
@@ -461,10 +587,10 @@ function renderStats() {
   const total = months.reduce((s, m) => s + m.sum, 0);
   const max = Math.max(...months.map(m => m.sum), 1);
   const sel = months.find(m => m.k === ui.selMonth);
-  const periodLabel = `${MONTHS[start % 12]} ${Math.floor(start / 12)} — ${MONTHS[end % 12]} ${Math.floor(end / 12)}`;
   const earliest = all.length ? Math.min(...all.map(x => x.month)) : nowKey;
+  const activeMonths = Math.max(1, end - Math.max(start, earliest) + 1);
+  const periodLabel = `${MONTHS[start % 12]} ${Math.floor(start / 12)} — ${MONTHS[end % 12]} ${Math.floor(end / 12)}`;
 
-  // По категориям
   const byCat = {};
   inPeriod.forEach(x => { const c = x.item.category || 'Без категории'; byCat[c] = (byCat[c] || 0) + x.pack.price; });
   const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
@@ -482,42 +608,56 @@ function renderStats() {
   }).filter(c => c.rows.length);
 
   document.getElementById('statsView').innerHTML = `
+    <header class="top"><div><h1>Статистика</h1></div></header>
     <div class="period">
-      <button class="small" data-period="-1" ${start > earliest ? '' : 'disabled'} aria-label="Раньше">←</button>
+      <button class="icon-btn" data-period="-1" ${start > earliest ? '' : 'disabled'} aria-label="Раньше"><svg width="9" height="15" viewBox="0 0 8 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 1 1 7l6 6"/></svg></button>
       <b>${periodLabel}</b>
-      <button class="small" data-period="1" ${ui.periodEnd < 0 ? '' : 'disabled'} aria-label="Позже">→</button>
+      <button class="icon-btn" data-period="1" ${ui.periodEnd < 0 ? '' : 'disabled'} aria-label="Позже">${ICON.chev}</button>
+    </div>
+    <div class="card hero">
+      <div class="label">Потрачено за 12 месяцев</div>
+      <div class="value">${rub(total)}</div>
+      <div class="sub">в среднем ${rub(total / activeMonths)} в месяц</div>
     </div>
     <div class="card">
-      <div class="chart-head"><h2>Траты на покупки</h2>
-        <div class="readout">${sel ? `${sel.label} ${sel.year}: <b>${rub(sel.sum)}</b>` : `за 12 мес.: <b>${rub(total)}</b>`}</div></div>
-      <div class="cols" role="list">${months.map(m => `<button role="listitem" data-month="${m.k}" class="${m.k === ui.selMonth ? 'sel' : ''}"
-          title="${m.label} ${m.year}: ${rub(m.sum)}" aria-label="${m.label} ${m.year}: ${rub(m.sum)}">
-          <i style="height:${(m.sum / max * 100).toFixed(1)}%"></i></button>`).join('')}</div>
+      <div class="chart-head"><h2>По месяцам</h2>
+        <div class="readout">${sel ? `${sel.label} ${sel.year}: <b>${rub(sel.sum)}</b>` : 'нажмите на столбик'}</div></div>
+      <div class="cols">${months.map(m => `<button data-month="${m.k}" class="${m.k === ui.selMonth ? 'sel' : ''}"
+          aria-label="${m.label} ${m.year}: ${rub(m.sum)}"><i style="height:${(m.sum / max * 100).toFixed(1)}%"></i></button>`).join('')}</div>
       <div class="col-labels">${months.map(m => `<span>${m.label}</span>`).join('')}</div>
-      <div class="muted" style="font-size:13px;margin-top:8px">Нажмите на столбик, чтобы увидеть сумму. В среднем ${rub(total / Math.max(1, end - Math.max(start, earliest) + 1))} в месяц.</div>
     </div>
     <div class="card">
-      <h2>По категориям</h2>
+      <div class="chart-head"><h2>По категориям</h2></div>
       ${cats.length ? cats.map(([c, v]) => `<div class="hbar"><span>${esc(c)}</span>
-        <span class="track"><i style="width:${(v / catMax * 100).toFixed(1)}%"></i></span>
-        <span class="val">${rub(v)}</span></div>`).join('') : '<div class="muted">Покупок за период нет</div>'}
+        <span class="track"><i style="width:${(v / catMax * 100).toFixed(1)}%"></i></span><span class="v">${rub(v)}</span></div>`).join('')
+        : '<div class="muted">Покупок за период нет</div>'}
     </div>
     <div class="card">
-      <h2>Что выгоднее: ₽ в месяц</h2>
+      <div class="chart-head"><h2>Что выгоднее</h2><div class="readout">₽ в месяц</div></div>
       ${cmp.length ? cmp.map(({ it, rows }) => {
         const m = Math.max(...rows.map(r => r.perMonth), 1);
         return `<div class="cmp"><div class="cmp-title">${esc(it.name)}</div>
         ${rows.map((r, i) => `<div class="hbar"><span>${esc(r.k)}${i === 0 && rows.length > 1 ? '<span class="best">выгоднее</span>' : ''}
-            <span class="sub">${rub(r.price)} · живёт ~${Math.round(r.days)} дн.${r.n > 1 ? ' · упаковок: ' + r.n : ''}</span></span>
-          <span class="track"><i style="width:${(r.perMonth / m * 100).toFixed(1)}%"></i></span>
-          <span class="val">${rub(r.perMonth)}</span></div>`).join('')}</div>`;
-      }).join('') : '<div class="muted">Появится, когда закончится хотя бы одна упаковка (нажмите «Купил новую» → «Да, закончилась»).</div>'}
+            <small>${rub(r.price)} · ~${Math.round(r.days)} ${dayWord(r.days)}${r.n > 1 ? ' · ' + r.n + ' уп.' : ''}</small></span>
+          <span class="track"><i style="width:${(r.perMonth / m * 100).toFixed(1)}%"></i></span><span class="v">${rub(r.perMonth)}</span></div>`).join('')}</div>`;
+      }).join('') : '<div class="muted">Появится, когда закончится хотя бы одна упаковка: «Купил новую» → «Да, закончилась».</div>'}
     </div>`;
 }
 
+function renderMore() {
+  document.getElementById('catList').innerHTML = state.categories.length
+    ? state.categories.map((c, i) => {
+        const cnt = state.items.filter(it => it.category === c).length;
+        return `<div class="list-row"><span>${esc(c)}<small>${cnt} ${plural(cnt, 'средство', 'средства', 'средств')}</small></span>
+          <span><button data-cat-rename="${i}">Изменить</button><button class="del" data-cat-del="${i}">Удалить</button></span></div>`;
+      }).join('')
+    : '<div class="list-row muted">Категорий пока нет</div>';
+}
+
 function render() {
-  renderCats();
-  if (ui.tab === 'stock') { renderSoon(); renderList(); } else renderStats();
+  if (ui.tab === 'stock') renderStock();
+  else if (ui.tab === 'stats') renderStats();
+  else renderMore();
 }
 
 // ---------- действия ----------
@@ -529,8 +669,8 @@ function useAmount(item, amount) {
     amount = ps.remaining;
   }
   item.usages.push({ id: uid(), date: new Date().toISOString(), amount, packId: ps.pack.id });
-  save(); render();
-  toast(`Списано ${fmt(amount)} ${ps.pack.unit}, осталось ${fmt(packState(item).remaining)}`);
+  save(); closeSheet(); render();
+  toast(`Списано ${fmt(amount)} ${ps.pack.unit} · осталось ${fmt(packState(item).remaining)}`);
 }
 
 function buy(item, form) {
@@ -549,19 +689,26 @@ function buy(item, form) {
     item.usages.push({ id: uid(), date, amount: ps.remaining, packId: old.id, writeoff: true });
   }
   item.packs.push(pack);
-  ui.buy.delete(item.id);
-  save(); render(); toast('Покупка сохранена');
+  save(); closeSheet(); render(); toast('Покупка сохранена');
 }
 
 function unbuy(item) {
-  if (item.packs.length < 2) return;
+  if (item.packs.length < 2) return false;
   const last = curPack(item);
-  if (!confirm(`Отменить покупку «${last.brand || 'Без названия'}» от ${fmtDate(last.date)}? Списания по ней тоже удалятся.`)) return;
+  if (!confirm(`Отменить покупку «${last.brand || 'Без названия'}» от ${fmtDate(last.date)}? Списания по ней тоже удалятся.`)) return false;
   item.packs.pop();
   const prev = curPack(item);
   item.usages = item.usages.filter(u => u.packId !== last.id && !(u.packId === prev.id && u.writeoff));
   delete prev.finishedAt; delete prev.merged;
-  save(); render();
+  save(); return true;
+}
+
+function undoUse(item) {
+  const ps = packState(item);
+  const u = [...ps.usages].reverse().find(x => !x.writeoff);
+  if (!u) return;
+  item.usages = item.usages.filter(x => x !== u);
+  save(); toast(`Отменено списание ${fmt(u.amount)} ${ps.pack.unit}`);
 }
 
 // Событие для Календаря iPhone (.ics)
@@ -592,83 +739,71 @@ function remind(item) {
 }
 
 // ---------- обработчики ----------
-document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => {
   ui.tab = b.dataset.tab;
-  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
-  document.getElementById('stockView').hidden = ui.tab !== 'stock';
-  document.getElementById('statsView').hidden = ui.tab !== 'stats';
+  document.querySelectorAll('.tabbar button').forEach(x => x.classList.toggle('on', x === b));
+  ['stock', 'stats', 'more'].forEach(t => document.getElementById(t + 'View').hidden = ui.tab !== t);
+  window.scrollTo(0, 0);
   render();
 });
 
-document.getElementById('fCat').addEventListener('change', e => {
-  if (e.target.value !== '__new') return;
-  const name = addCategory();
-  renderCats();
-  e.target.value = name || '';
+document.getElementById('addBtn').onclick = sheetAdd;
+document.getElementById('search').addEventListener('input', renderStock);
+document.getElementById('chips').addEventListener('click', e => {
+  const c = e.target.closest('[data-cat]'); if (!c) return;
+  ui.cat = c.dataset.cat; renderStock();
 });
 
-document.getElementById('addForm').addEventListener('submit', e => {
-  e.preventDefault();
-  const name = document.getElementById('fName').value.trim();
-  const amount = num(document.getElementById('fAmount').value);
-  const price = num(document.getElementById('fPrice').value);
-  if (!name || !(amount > 0) || !(price >= 0)) return toast('Проверьте поля');
-  const cat = document.getElementById('fCat').value;
-  state.items.push({
-    id: uid(), name, category: cat === '__new' ? '' : cat, createdAt: new Date().toISOString(), usages: [],
-    packs: [{ id: uid(), brand: document.getElementById('fBrand').value.trim(), unit: document.getElementById('fUnit').value,
-      amount, price, date: fromInput(document.getElementById('fDate').value) }]
-  });
-  save(); e.target.reset(); document.getElementById('fDate').value = todayInput();
-  document.getElementById('addBox').open = false; render();
-  toast('Добавлено: ' + name);
+document.getElementById('list').addEventListener('click', e => {
+  if (e.target.closest('[data-empty-add]')) return sheetAdd();
+  const btn = e.target.closest('[data-act]'); if (!btn) return;
+  const item = findItem(btn.closest('[data-id]').dataset.id);
+  ({ details: sheetDetails, use: sheetUse, buy: sheetBuy, remind })[btn.dataset.act](item);
 });
 
-const list = document.getElementById('list');
-list.addEventListener('submit', e => {
-  e.preventDefault();
-  const item = state.items.find(i => i.id === e.target.closest('[data-id]').dataset.id);
-  if (e.target.dataset.act === 'use') useAmount(item, num(e.target.amount.value));
-  if (e.target.dataset.act === 'buy-submit') buy(item, e.target);
+// Всё, что внутри нижнего окна
+const body = document.getElementById('sheetBody');
+body.addEventListener('change', e => {
+  if (!e.target.classList.contains('cat-select') || e.target.value !== '__new') return;
+  const name = addCategory(), sel = e.target;
+  sel.innerHTML = catOptions(name || '');
+  sel.value = name || '';
 });
-list.addEventListener('click', e => {
-  const btn = e.target.closest('button[data-act]');
-  if (!btn) return;
-  const id = btn.closest('[data-id]').dataset.id;
-  const item = state.items.find(i => i.id === id);
-  const toggle = set => { set.has(id) ? set.delete(id) : set.add(id); renderList(); };
-  switch (btn.dataset.act) {
-    case 'quick': useAmount(item, num(btn.dataset.v)); break;
-    case 'buy': toggle(ui.buy); break;
-    case 'buy-cancel': ui.buy.delete(id); renderList(); break;
-    case 'history': toggle(ui.history); break;
+body.addEventListener('click', e => {
+  const ctx = ui.sheet; if (!ctx) return;
+  const item = ctx.id && findItem(ctx.id);
+  const q = e.target.closest('[data-quick]');
+  if (q) { body.querySelector('[name=amount]').value = q.dataset.quick; return; }
+  const d = e.target.closest('[data-do]'); if (!d) return;
+  switch (d.dataset.do) {
     case 'remind': remind(item); break;
-    case 'undo': {
-      const ps = packState(item);
-      const u = [...ps.usages].reverse().find(x => !x.writeoff);
-      if (!u) break;
-      item.usages = item.usages.filter(x => x !== u);
-      save(); render(); toast(`Отменено списание ${fmt(u.amount)} ${ps.pack.unit}`);
-      break;
-    }
-    case 'rename': {
-      const n = (prompt('Новое название:', item.name) || '').trim();
-      if (n) { item.name = n; save(); render(); }
-      break;
-    }
-    case 'recat': {
-      const opts = ['Без категории', ...state.categories];
-      const ans = prompt('Номер категории:\n' + opts.map((c, i) => `${i} — ${c}`).join('\n'), String(Math.max(0, opts.indexOf(item.category))));
-      const i = parseInt(ans, 10);
-      if (i >= 0 && i < opts.length) { item.category = i === 0 ? '' : opts[i]; save(); render(); }
-      break;
-    }
-    case 'unbuy': unbuy(item); break;
+    case 'undo': undoUse(item); render(); sheetDetails(item); break;
+    case 'unbuy': if (unbuy(item)) { render(); sheetDetails(item); } break;
     case 'delete':
       if (confirm(`Удалить «${item.name}» вместе со всей историей?`)) {
-        state.items = state.items.filter(i => i.id !== id); save(); render();
+        state.items = state.items.filter(i => i !== item); save(); closeSheet(); render();
       }
       break;
+  }
+});
+body.addEventListener('submit', e => {
+  e.preventDefault();
+  const f = e.target, ctx = ui.sheet, item = ctx.id && findItem(ctx.id);
+  if (f.id === 'useForm') useAmount(item, num(f.amount.value));
+  if (f.id === 'buyForm') buy(item, f);
+  if (f.id === 'editForm') {
+    item.name = f.name.value.trim() || item.name;
+    item.category = f.cat.value === '__new' ? '' : f.cat.value;
+    save(); render(); sheetDetails(item); toast('Сохранено');
+  }
+  if (f.id === 'addForm') {
+    const name = f.name.value.trim(), amount = num(f.amount.value), price = num(f.price.value);
+    if (!name || !(amount > 0) || !(price >= 0)) return toast('Проверьте поля');
+    state.items.push({
+      id: uid(), name, category: f.cat.value === '__new' ? '' : f.cat.value, createdAt: new Date().toISOString(), usages: [],
+      packs: [{ id: uid(), brand: f.brand.value.trim(), unit: f.unit.value, amount, price, date: fromInput(f.date.value) }]
+    });
+    save(); closeSheet(); render(); toast('Добавлено: ' + name);
   }
 });
 
@@ -678,10 +813,7 @@ document.getElementById('statsView').addEventListener('click', e => {
   if (p) { ui.periodEnd += +p.dataset.period; ui.selMonth = null; renderStats(); }
 });
 
-document.getElementById('search').addEventListener('input', renderList);
-document.getElementById('filterCat').addEventListener('change', renderList);
-
-document.getElementById('addCatBtn').onclick = () => { addCategory(); render(); };
+document.getElementById('addCatBtn').onclick = () => { addCategory(); renderMore(); };
 document.getElementById('catList').addEventListener('click', e => {
   const r = e.target.dataset.catRename, d = e.target.dataset.catDel;
   if (r !== undefined) {
@@ -692,11 +824,11 @@ document.getElementById('catList').addEventListener('click', e => {
   } else if (d !== undefined) {
     const c = state.categories[d];
     const cnt = state.items.filter(it => it.category === c).length;
-    if (!confirm(`Удалить категорию «${c}»?${cnt ? ` ${cnt} средств останутся без категории.` : ''}`)) return;
+    if (!confirm(`Удалить категорию «${c}»?${cnt ? ` ${cnt} ${plural(cnt, 'средство останется', 'средства останутся', 'средств останутся')} без категории.` : ''}`)) return;
     state.categories.splice(d, 1);
     state.items.forEach(it => { if (it.category === c) it.category = ''; });
   } else return;
-  save(); render();
+  save(); renderMore();
 });
 
 document.getElementById('exportBtn').addEventListener('click', () => {
@@ -713,14 +845,13 @@ document.getElementById('importFile').addEventListener('change', async e => {
   try {
     const data = JSON.parse(await file.text());
     if (!Array.isArray(data.items)) throw 0;
-    if (!confirm(`Заменить текущие данные (${state.items.length} средств) данными из файла (${data.items.length})?`)) return;
+    if (!confirm(`Заменить текущие данные (${state.items.length}) данными из файла (${data.items.length})?`)) return;
     state = { categories: data.categories || [], items: data.items };
     save(); render(); toast('Импорт выполнен');
   } catch { toast('Файл не подходит'); }
   e.target.value = '';
 });
 
-document.getElementById('fDate').value = todayInput();
 renderBanner();
 render();
 </script>
