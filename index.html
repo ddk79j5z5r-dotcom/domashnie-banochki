@@ -331,7 +331,8 @@ const fmt = (n, d = 1) => Number((+n).toFixed(d)).toLocaleString('ru-RU');
 const rub = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
 const fmtDate = s => new Date(s).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: '2-digit' });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const todayInput = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const toInput = x => { const d = new Date(x); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const todayInput = () => toInput(Date.now());
 // Дата из поля: сегодня — текущий момент, иначе полдень выбранного дня
 const fromInput = v => v === todayInput() ? new Date().toISOString() : new Date(v + 'T12:00').toISOString();
 const daysBetween = (a, b) => (new Date(b) - new Date(a)) / DAY;
@@ -508,8 +509,13 @@ function sheetDetails(item) {
     <div class="list">${events.map(e => `<div class="list-row">${e.html}</div>`).join('')}</div>
     <div class="field-label">Изменить</div>
     <form id="editForm" autocomplete="off">
-      <div class="field"><input name="name" required value="${esc(item.name)}" aria-label="Название"></div>
-      <div class="field"><select name="cat" class="cat-select" aria-label="Категория">${catOptions(item.category)}</select></div>
+      <div class="field"><label>Название</label><input name="name" required value="${esc(item.name)}"></div>
+      <div class="field"><label>Категория</label><select name="cat" class="cat-select">${catOptions(item.category)}</select></div>
+      <div class="row">
+        <div class="field"><label>Дата покупки</label><input name="date" type="date" required value="${toInput(p.date)}"></div>
+        <div class="field"><label>Цена, ₽</label><input name="price" type="number" inputmode="decimal" min="0" step="any" required value="${p.price}"></div>
+      </div>
+      <p class="hint" style="margin-top:-6px">Дата и цена — текущей упаковки (${esc(p.brand || 'Без названия')}).</p>
       <button class="btn plain block" type="submit" style="margin-bottom:16px">Сохранить изменения</button>
     </form>
     <div class="stack">
@@ -814,6 +820,24 @@ body.addEventListener('submit', e => {
   if (f.id === 'useForm') useAmount(item, num(f.amount.value));
   if (f.id === 'buyForm') buy(item, f);
   if (f.id === 'editForm') {
+    const p = curPack(item), prev = item.packs[item.packs.length - 2];
+    const price = num(f.price.value);
+    if (!(price >= 0)) return toast('Проверьте цену');
+    // Дату меняем, только если её правда поменяли — иначе сохраняем точное время покупки
+    const date = f.date.value === toInput(p.date) ? p.date : fromInput(f.date.value);
+    if (date !== p.date) {
+      const firstUse = item.usages.filter(u => u.packId === p.id).map(u => u.date).sort()[0];
+      if (new Date(date) > new Date()) return toast('Дата покупки не может быть в будущем');
+      if (prev && new Date(date) < new Date(prev.date)) return toast(`Дата раньше предыдущей покупки (${fmtDate(prev.date)})`);
+      if (firstUse && new Date(date) > new Date(firstUse)) return toast(`Есть списания раньше этой даты (${fmtDate(firstUse)})`);
+      // предыдущая упаковка закончилась в день этой покупки — сдвигаем вместе
+      if (prev) {
+        prev.finishedAt = date;
+        item.usages.forEach(u => { if (u.packId === prev.id && u.writeoff) u.date = date; });
+      }
+      p.date = date;
+    }
+    p.price = price;
     item.name = f.name.value.trim() || item.name;
     item.category = f.cat.value === '__new' ? '' : f.cat.value;
     save(); render(); sheetDetails(item); toast('Сохранено');
