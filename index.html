@@ -218,6 +218,13 @@
     background: var(--text); color: var(--bg); padding: 11px 18px; border-radius: 14px; font-size: 15px; font-weight: 500;
     opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; max-width: calc(100% - 32px); text-align: center; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  /* внутри нижнего окна уведомление показываем сверху, чтобы не закрывать кнопки */
+  .toast.top { bottom: auto; top: calc(env(safe-area-inset-top) + 12px); }
+  .form-error { color: var(--danger); background: var(--danger-tonal); border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 500; margin: 0 0 12px; }
+  .update { position: fixed; left: 50%; top: calc(env(safe-area-inset-top) + 10px); transform: translateX(-50%); z-index: 30;
+    display: flex; align-items: center; gap: 12px; background: var(--text); color: var(--bg); border-radius: 14px; padding: 8px 8px 8px 16px;
+    font-size: 14px; font-weight: 500; box-shadow: 0 6px 20px rgba(0, 0, 0, .18); white-space: nowrap; }
+  .update button { background: var(--accent); color: var(--on-accent); border-radius: 10px; padding: 7px 12px; font-weight: 600; }
   @media (max-width: 380px) { .quick { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
@@ -249,6 +256,7 @@
     </div>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
     <p class="muted" style="font-size:13px;margin:16px 4px">Данные хранятся только на этом устройстве. Чтобы Safari их не стёр, откройте приложение с ярлыка на экране «Домой».</p>
+    <p class="muted" style="font-size:13px;margin:0 4px">Версия <span id="version"></span> · <button id="checkUpdate" style="color:var(--accent);font-size:13px">проверить обновления</button></p>
   </section>
 </div>
 
@@ -271,8 +279,10 @@
   <div id="sheetBody"></div>
 </div></dialog>
 <div class="toast" id="toast"></div>
+<div class="update" id="update" hidden><span>Вышла новая версия</span><button id="updateBtn">Обновить</button></div>
 
 <script>
+const VERSION = '2026.10.04-8';
 const KEY = 'chem-inventory-v2';
 const SOON_DAYS = 7;        // блок «Скоро закончится»
 const REMIND_BEFORE = 5;    // событие в Календаре за N дней до конца
@@ -342,8 +352,14 @@ const daysBetween = (a, b) => (new Date(b) - new Date(a)) / DAY;
 const plural = (n, one, few, many) => { n = Math.abs(Math.round(n)); const a = n % 10, b = n % 100;
   return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 12 || b > 14) ? few : many; };
 const dayWord = n => plural(n, 'день', 'дня', 'дней');
+let toastSeq = 0, lastToast = '';
 function toast(msg) {
   const t = document.getElementById('toast');
+  toastSeq++; lastToast = msg;
+  // открытое окно рисуется поверх всей страницы — переносим уведомление внутрь него
+  const host = sheet.open ? sheet : document.body;
+  if (t.parentNode !== host) host.appendChild(t);
+  t.classList.toggle('top', sheet.open);
   t.textContent = msg; t.classList.add('show');
   clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2400);
 }
@@ -833,7 +849,7 @@ function unbuy(item) {
 function undoUse(item) {
   const ps = packState(item);
   const u = [...ps.usages].reverse().find(x => !x.writeoff);
-  if (!u) return;
+  if (!u || !confirm(`Отменить списание ${fmt(u.amount)} ${ps.pack.unit} от ${fmtDate(u.date)}?`)) return;
   item.usages = item.usages.filter(x => x !== u);
   save(); toast(`Отменено списание ${fmt(u.amount)} ${ps.pack.unit}`);
 }
@@ -926,7 +942,21 @@ body.addEventListener('click', e => {
 });
 body.addEventListener('submit', e => {
   e.preventDefault();
-  const f = e.target, ctx = ui.sheet, item = ctx.id && findItem(ctx.id);
+  const f = e.target, seq = toastSeq;
+  f.querySelector('.form-error')?.remove();
+  handleSubmit(f);
+  if (f.isConnected && toastSeq !== seq) {
+    const err = document.createElement('p');
+    err.className = 'form-error'; err.setAttribute('role', 'alert'); err.textContent = lastToast;
+    const btn = f.querySelector('[type=submit]');
+    (btn.closest('.stack') || btn).before(err);
+    err.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+});
+body.addEventListener('input', e => e.target.form?.querySelector('.form-error')?.remove());
+
+function handleSubmit(f) {
+  const ctx = ui.sheet, item = ctx.id && findItem(ctx.id);
   if (f.id === 'useForm') useAmount(item, num(f.amount.value));
   if (f.id === 'usageForm') saveUsage(item, ctx.usage, f);
   if (f.id === 'packForm') {
@@ -952,7 +982,7 @@ body.addEventListener('submit', e => {
     });
     save(); closeSheet(); render(); toast('Добавлено: ' + name);
   }
-});
+}
 
 document.getElementById('statsView').addEventListener('click', e => {
   const m = e.target.closest('[data-month]'), p = e.target.closest('[data-period]');
@@ -1001,8 +1031,26 @@ document.getElementById('importFile').addEventListener('change', async e => {
   e.target.value = '';
 });
 
+// Проверка обновлений: iPhone может открывать сохранённую старую копию страницы
+async function checkUpdate(manual) {
+  try {
+    const url = location.pathname + '?check=' + Date.now();
+    const html = await (await fetch(url, { cache: 'no-store' })).text();
+    const v = (html.match(/const VERSION = '([^']+)'/) || [])[1];
+    if (v && v !== VERSION) {
+      document.getElementById('update').hidden = false;
+      document.getElementById('updateBtn').onclick = () => location.replace(location.pathname + '?v=' + encodeURIComponent(v));
+    } else if (manual) toast('У вас последняя версия');
+  } catch { if (manual) toast('Нет связи — не удалось проверить'); }
+}
+document.getElementById('version').textContent = VERSION;
+document.getElementById('checkUpdate').onclick = () => checkUpdate(true);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+if (/[?&]v=/.test(location.search)) history.replaceState(null, '', location.pathname);
+
 renderBanner();
 render();
+checkUpdate();
 </script>
 </body>
 </html>
