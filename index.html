@@ -7,11 +7,11 @@
 <meta name="theme-color" content="#0e0e0d" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Запасы">
+<meta name="apple-mobile-web-app-title" content="Баночки">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Запасы: химия и уход</title>
+<title>Домашние баночки</title>
 <style>
   :root {
     --bg: #f6f5f2; --card: #ffffff; --field: #f3f2ef; --text: #1b1a19; --muted: #6e6c67; --faint: #a3a19b;
@@ -45,7 +45,7 @@
 
   /* Шапка */
   .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
-  .top h1 { font-size: 32px; line-height: 1.1; letter-spacing: -.02em; margin: 0; font-weight: 800; }
+  .top h1 { font-size: clamp(24px, 7.4vw, 32px); line-height: 1.1; letter-spacing: -.02em; margin: 0; font-weight: 800; }
   .top p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
   .fab { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: var(--on-accent);
     display: grid; place-items: center; flex: none; box-shadow: var(--shadow); }
@@ -222,7 +222,7 @@
 <div class="wrap">
   <section id="stockView">
     <header class="top">
-      <div><h1>Запасы</h1><p id="summary"></p></div>
+      <div><h1>Домашние баночки</h1><p id="summary"></p></div>
       <button class="fab" id="addBtn" aria-label="Добавить средство"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     </header>
     <div id="banner"></div>
@@ -744,8 +744,8 @@ function remind(item) {
   const local = x => `${x.getFullYear()}${pad(x.getMonth() + 1)}${pad(x.getDate())}T${pad(x.getHours())}${pad(x.getMinutes())}00`;
   const icsText = s => String(s).replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
   const brand = curPack(item).brand;
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//zapasy//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
-    `UID:${uid()}@himiya`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//banochki//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+    `UID:${uid()}@banochki`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
     `DTSTART:${local(d)}`, 'DURATION:PT15M',
     `SUMMARY:${icsText('Купить: ' + item.name + (brand ? ' (' + brand + ')' : ''))}`,
     `DESCRIPTION:${icsText('По прогнозу закончится примерно через ' + REMIND_BEFORE + ' дней.')}`,
@@ -859,7 +859,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `himiya-${todayInput()}.json`;
+  a.download = `banochki-${todayInput()}.json`;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 });

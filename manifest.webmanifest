@@ -1,6 +1,6 @@
 {
-  "name": "Запасы: химия и уход",
-  "short_name": "Запасы",
+  "name": "Домашние баночки",
+  "short_name": "Баночки",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f6f5f2",
