@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Химия">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Учёт бытовой химии</title>
+<style>
+  :root {
+    --bg: #f5f7f7; --card: #ffffff; --text: #1a2321; --muted: #66736f;
+    --line: #dde4e2; --accent: #0f766e; --on-accent: #ffffff;
+    --warn: #b45309; --warn-soft: #fef3c7; --danger: #b91c1c; --danger-soft: #fee2e2;
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1413; --card: #182120; --text: #e6eeec; --muted: #94a3a0;
+      --line: #2a3634; --accent: #2dd4bf; --on-accent: #062421;
+      --warn: #fbbf24; --warn-soft: #3a2c0c; --danger: #f87171; --danger-soft: #3b1515;
+    }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px 80px; }
+  h1 { font-size: 24px; margin: 8px 0 12px; }
+  h2 { font-size: 17px; margin: 0 0 12px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  input, select { width: 100%; padding: 10px 12px; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 10px; min-height: 44px; }
+  input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .grid { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+  .grid .full { grid-column: 1 / -1; }
+  .section-label { grid-column: 1 / -1; font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 6px;
+    border-top: 1px dashed var(--line); padding-top: 10px; }
+  button { font: inherit; cursor: pointer; border-radius: 10px; padding: 10px 14px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  button.small { padding: 6px 10px; font-size: 14px; }
+  button.link { border: none; background: none; color: var(--muted); padding: 6px; font-size: 14px; }
+  button.danger { color: var(--danger); }
+
+  .tabs { display: flex; gap: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 4px; margin-bottom: 12px; }
+  .tabs button { flex: 1; border: none; background: none; padding: 8px; border-radius: 9px; color: var(--muted); font-weight: 600; }
+  .tabs button.on { background: var(--accent); color: var(--on-accent); }
+
+  .banner { background: var(--warn-soft); color: var(--text); border: 1px solid var(--warn); border-radius: var(--radius);
+    padding: 12px 14px; margin-bottom: 12px; font-size: 14px; display: flex; gap: 8px; align-items: flex-start; }
+  .banner b { color: var(--warn); }
+  .banner button { margin-left: auto; flex: none; }
+
+  .soon { border-color: var(--warn); }
+  .soon h2 { color: var(--warn); }
+  .soon-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 15px; gap: 8px; }
+  .soon-row span:last-child { color: var(--muted); white-space: nowrap; }
+
+  .toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .toolbar input { flex: 1 1 180px; }
+  .toolbar select { flex: 0 1 180px; width: auto; }
+  .item-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .item-name { font-weight: 600; font-size: 17px; }
+  .brand { font-size: 14px; color: var(--muted); }
+  .tag { font-size: 12px; color: var(--muted); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+  .bar { height: 10px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; margin: 10px 0 6px; }
+  .bar > i { display: block; height: 100%; background: var(--accent); transition: width .3s; }
+  .card.low { border-color: var(--warn); } .card.low .bar > i { background: var(--warn); }
+  .card.empty { border-color: var(--danger); } .card.empty .bar > i { background: var(--danger); }
+  .meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; font-size: 14px; color: var(--muted); }
+  .meta b { color: var(--text); }
+  .badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .badge.low { background: var(--warn-soft); color: var(--warn); }
+  .badge.empty { background: var(--danger-soft); color: var(--danger); }
+  .use-row { display: flex; gap: 8px; margin-top: 12px; }
+  .use-row input { flex: 1; }
+  .quick { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .actions { display: flex; gap: 2px; margin-top: 6px; flex-wrap: wrap; }
+  .subform { margin-top: 10px; border-top: 1px dashed var(--line); padding-top: 12px; }
+  .radios { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; font-size: 15px; }
+  .radios label { display: flex; gap: 8px; align-items: center; color: var(--text); font-size: 15px; margin: 0; }
+  .radios input { width: auto; min-height: 0; }
+  .note { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+  .history { margin-top: 8px; font-size: 14px; border-top: 1px dashed var(--line); padding-top: 8px; }
+  .history .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; color: var(--muted); }
+  .history .row b { color: var(--text); font-weight: 500; text-align: right; }
+  .muted { color: var(--muted); }
+  .center { text-align: center; padding: 28px 16px; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details[open] summary { margin-bottom: 12px; }
+
+  /* Статистика */
+  .period { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .period b { font-size: 15px; }
+  .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+  .chart-head h2 { margin: 0; }
+  .readout { font-size: 14px; color: var(--muted); text-align: right; }
+  .readout b { color: var(--text); }
+  .cols { display: flex; align-items: flex-end; gap: 2px; height: 160px; border-bottom: 1px solid var(--line); }
+  .cols button { flex: 1; height: 100%; display: flex; align-items: flex-end; padding: 0; border: none; background: none; border-radius: 0; }
+  .cols button i { display: block; width: 100%; max-width: 28px; margin: 0 auto; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 0; }
+  .cols button.sel i, .cols button:hover i { outline: 2px solid var(--text); outline-offset: 1px; }
+  .col-labels { display: flex; gap: 2px; margin-top: 4px; }
+  .col-labels span { flex: 1; text-align: center; font-size: 11px; color: var(--muted); }
+  .hbar { display: grid; grid-template-columns: minmax(90px, 35%) 1fr auto; gap: 8px; align-items: center; padding: 5px 0; font-size: 14px; }
+  .hbar .track { height: 12px; }
+  .hbar .track i { display: block; height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; }
+  .hbar .val { font-variant-numeric: tabular-nums; }
+  .cmp { padding: 8px 0; border-top: 1px dashed var(--line); }
+  .cmp:first-of-type { border-top: none; }
+  .cmp-title { font-weight: 600; margin-bottom: 4px; }
+  .cmp .hbar .sub { display: block; font-size: 12px; color: var(--muted); }
+  .best { font-size: 11px; font-weight: 700; color: var(--accent); margin-left: 4px; }
+
+  .footer { margin-top: 24px; }
+  .footer .card { padding: 12px 16px; }
+  .cat-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; }
+  .file-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .toast { position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--text); color: var(--bg);
+    padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: calc(100% - 32px); }
+  .toast.show { opacity: 1; }
+  @media (max-width: 480px) { .grid { grid-template-columns: 1fr; } .grid .half-sm { grid-column: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🧴 Бытовая химия</h1>
+  <div id="banner"></div>
+  <div class="tabs">
+    <button data-tab="stock" class="on">Остатки</button>
+    <button data-tab="stats">Статистика</button>
+  </div>
+
+  <main id="stockView">
+    <div id="soon"></div>
+
+    <details class="card" id="addBox">
+      <summary>➕ Добавить средство</summary>
+      <form id="addForm" class="grid" autocomplete="off">
+        <div class="full">
+          <label for="fName">Для чего (назначение)</label>
+          <input id="fName" required placeholder="Например, Средство для посуды">
+        </div>
+        <div class="full">
+          <label for="fCat">Категория</label>
+          <select id="fCat" class="cat-select"></select>
+        </div>
+        <div class="section-label">Первая покупка</div>
+        <div class="full">
+          <label for="fBrand">Бренд / товар</label>
+          <input id="fBrand" placeholder="Fairy Лимон">
+        </div>
+        <div>
+          <label for="fAmount">Объём</label>
+          <input id="fAmount" type="number" inputmode="decimal" min="0.01" step="any" required placeholder="500">
+        </div>
+        <div>
+          <label for="fUnit">Единица</label>
+          <select id="fUnit"><option>мл</option><option>г</option><option>шт</option></select>
+        </div>
+        <div>
+          <label for="fPrice">Цена, ₽</label>
+          <input id="fPrice" type="number" inputmode="decimal" min="0" step="any" required placeholder="250">
+        </div>
+        <div>
+          <label for="fDate">Дата покупки</label>
+          <input id="fDate" type="date" required>
+        </div>
+        <div class="full"><button class="primary" type="submit">Сохранить</button></div>
+      </form>
+    </details>
+
+    <div class="toolbar" id="toolbar">
+      <input id="search" type="search" placeholder="Поиск…">
+      <select id="filterCat"></select>
+    </div>
+    <div id="list"></div>
+  </main>
+
+  <main id="statsView" hidden></main>
+
+  <div class="footer">
+    <details class="card" id="catBox">
+      <summary>🏷️ Категории</summary>
+      <div id="catList"></div>
+      <button class="small" id="addCatBtn" style="margin-top:8px">+ Новая категория</button>
+    </details>
+    <div class="file-btns">
+      <button class="link" id="exportBtn">Экспорт в файл</button>
+      <button class="link" id="importBtn">Импорт из файла</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'chem-inventory-v2';
+const SOON_DAYS = 7;        // блок «Скоро закончится»
+const REMIND_BEFORE = 5;    // событие в Календаре за N дней до конца
+const REMIND_HOUR = 10;
+const DAY = 864e5;
+const MONTHS = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+
+let state = load();
+const ui = { tab: 'stock', history: new Set(), buy: new Set(), periodEnd: 0, selMonth: null };
+
+// ---------- хранение ----------
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.items)) return { categories: s.categories || [], items: s.items };
+    const v1 = JSON.parse(localStorage.getItem('chem-inventory-v1'));
+    if (v1 && Array.isArray(v1.items)) return migrateV1(v1);
+  } catch {}
+  return { categories: [], items: [] };
+}
+function migrateV1(v1) {
+  const items = v1.items.map(it => {
+    const packs = it.packs.map((p, i) => ({ id: uid(), brand: '', unit: it.unit, amount: p.amount, price: p.price, date: p.date }));
+    const last = packs[packs.length - 1];
+    packs.slice(0, -1).forEach((p, i) => { p.finishedAt = packs[i + 1].date; p.merged = true; });
+    last.carry = packs.slice(0, -1).reduce((s, p) => s + p.amount, 0);
+    return { id: it.id, name: it.name, category: it.category || '', createdAt: it.createdAt, packs,
+      usages: it.usages.map(u => ({ ...u, packId: last.id })) };
+  });
+  return { categories: [...new Set(items.map(i => i.category).filter(Boolean))], items };
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch { toast('Не удалось сохранить в браузере'); }
+}
+
+// ---------- утилиты ----------
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+const num = v => parseFloat(String(v).replace(',', '.'));
+const fmt = (n, d = 1) => Number((+n).toFixed(d)).toLocaleString('ru-RU');
+const rub = n => Math.round(n).toLocaleString('ru-RU') + ' ₽';
+const fmtDate = s => new Date(s).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: '2-digit' });
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const todayInput = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+// Дата из поля: сегодня — текущий момент, иначе полдень выбранного дня
+const fromInput = v => v === todayInput() ? new Date().toISOString() : new Date(v + 'T12:00').toISOString();
+const daysBetween = (a, b) => (new Date(b) - new Date(a)) / DAY;
+const dayWord = n => { n = Math.abs(Math.round(n)); const a = n % 10, b = n % 100;
+  return a === 1 && b !== 11 ? 'день' : a >= 2 && a <= 4 && (b < 12 || b > 14) ? 'дня' : 'дней'; };
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ---------- расчёты ----------
+const curPack = item => item.packs[item.packs.length - 1];
+
+function packState(item) {
+  const p = curPack(item);
+  const start = p.amount + (p.carry || 0);
+  const usages = item.usages.filter(u => u.packId === p.id);
+  const used = usages.reduce((s, u) => s + u.amount, 0);
+  return { pack: p, start, used, usages, remaining: Math.max(0, start - used) };
+}
+
+// Срок жизни законченных упаковок (только тех, что закончились «честно», без переноса остатка)
+function lifetimes(item) {
+  return item.packs.filter(p => p.finishedAt && !p.merged).map(p => {
+    const days = Math.max(1, daysBetween(p.date, p.finishedAt));
+    return { brand: p.brand || 'Без названия', unit: p.unit, price: p.price, days,
+      size: (p.amount + (p.carry || 0)) / p.amount, perMonth: p.price / days * 30 };
+  });
+}
+
+// Прогноз: дней до конца текущей упаковки (null — данных нет)
+function forecast(item) {
+  const { pack, start, remaining, usages } = packState(item);
+  if (remaining <= 0) return { days: 0, basis: 'empty' };
+  const age = Math.max(0, daysBetween(pack.date, Date.now()));
+  let life = lifetimes(item);
+  const same = life.filter(l => l.brand === (pack.brand || 'Без названия') && l.unit === pack.unit);
+  if (same.length) life = same;
+
+  if (life.length) {
+    // скорость в «упаковках в день» по прошлым упаковкам
+    const ppd = life.reduce((s, l) => s + l.size / l.days, 0) / life.length;
+    const byAge = start / pack.amount - age * ppd;
+    const byEntries = remaining / pack.amount;
+    // свежие списания уточняют прогноз: если они показывают меньший остаток — верим им
+    const frac = usages.length ? Math.min(byAge, byEntries) : byAge;
+    return { days: Math.max(0, frac / ppd), basis: 'life' };
+  }
+  if (!usages.length) return null;
+  const used = start - remaining;
+  const rate = used / Math.max(1, age);
+  return { days: remaining / rate, basis: 'rate' };
+}
+
+function status(item) {
+  const { remaining } = packState(item);
+  if (remaining <= 0) return 'empty';
+  const f = forecast(item);
+  return f && f.days < SOON_DAYS ? 'low' : '';
+}
+
+function forecastText(f) {
+  if (!f) return 'прогноз появится после первых списаний';
+  if (f.basis === 'empty') return 'закончилось';
+  if (f.days < 0.5) return 'по прогнозу уже должно закончиться';
+  const d = Math.round(f.days);
+  return `хватит примерно на ${d} ${dayWord(d)}`;
+}
+
+// ---------- отрисовка: общие ----------
+function catOptions(selected, { withNew = true, withNone = true } = {}) {
+  return (withNone ? `<option value="">Без категории</option>` : '') +
+    state.categories.map(c => `<option ${c === selected ? 'selected' : ''}>${esc(c)}</option>`).join('') +
+    (withNew ? `<option value="__new">+ Новая категория…</option>` : '');
+}
+function addCategory() {
+  const name = (prompt('Название категории:') || '').trim();
+  if (!name) return null;
+  if (!state.categories.includes(name)) { state.categories.push(name); save(); }
+  return name;
+}
+
+function renderBanner() {
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  let dismissed = false;
+  try { dismissed = localStorage.getItem('chem-banner-off') === '1'; } catch {}
+  const el = document.getElementById('banner');
+  if (!ios || navigator.standalone || dismissed) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="banner"><div><b>Добавьте на экран «Домой».</b> Нажмите «Поделиться» ⬆️ → «На экран „Домой“».
+    Иначе Safari может стереть данные, если не открывать приложение 7 дней.</div>
+    <button class="link" id="bannerOff" aria-label="Скрыть">✕</button></div>`;
+  document.getElementById('bannerOff').onclick = () => { try { localStorage.setItem('chem-banner-off', '1'); } catch {} renderBanner(); };
+}
+
+function renderCats() {
+  document.getElementById('fCat').innerHTML = catOptions(document.getElementById('fCat').value);
+  const fc = document.getElementById('filterCat'), cur = fc.options.length ? fc.value : '*';
+  fc.innerHTML = `<option value="*">Все категории</option>` + catOptions(cur, { withNew: false });
+  fc.value = [...fc.options].some(o => o.value === cur) ? cur : '*';
+  fc.hidden = !state.categories.length;
+  document.getElementById('catList').innerHTML = state.categories.length
+    ? state.categories.map((c, i) => `<div class="cat-row"><span>${esc(c)}</span>
+        <span><button class="link" data-cat-rename="${i}">Переименовать</button><button class="link danger" data-cat-del="${i}">Удалить</button></span></div>`).join('')
+    : '<div class="muted" style="font-size:14px">Категорий пока нет</div>';
+}
+
+// ---------- вкладка «Остатки» ----------
+function renderSoon() {
+  const rows = state.items.map(it => ({ it, f: forecast(it), st: status(it) }))
+    .filter(r => r.st).sort((a, b) => (a.f?.days ?? 0) - (b.f?.days ?? 0));
+  document.getElementById('soon').innerHTML = rows.length ? `<div class="card soon"><h2>⚠️ Скоро закончится</h2>
+    ${rows.map(({ it, f, st }) => `<div class="soon-row"><span>${esc(it.name)}</span>
+      <span>${st === 'empty' ? 'закончилось' : f.days < 0.5 ? 'пора покупать' : '≈ ' + Math.round(f.days) + ' ' + dayWord(f.days)}</span></div>`).join('')}
+  </div>` : '';
+}
+
+function renderList() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const cat = document.getElementById('filterCat').value;
+  document.getElementById('toolbar').hidden = state.items.length < 4 && !q;
+  const items = state.items
+    .filter(it => (!q || (it.name + ' ' + it.packs.map(p => p.brand).join(' ')).toLowerCase().includes(q))
+      && (cat === '*' || !cat && !it.category || it.category === cat))
+    .map(it => ({ it, f: forecast(it), ps: packState(it), st: status(it) }))
+    .sort((a, b) => (a.f ? a.f.days : 1e9) - (b.f ? b.f.days : 1e9) || a.it.name.localeCompare(b.it.name));
+
+  const list = document.getElementById('list');
+  if (!state.items.length) { list.innerHTML = `<div class="card center muted">Пока пусто. Нажмите «Добавить средство».</div>`; return; }
+  if (!items.length) { list.innerHTML = `<div class="card center muted">Ничего не найдено</div>`; return; }
+  list.innerHTML = items.map(r => cardHtml(r)).join('');
+}
+
+function cardHtml({ it, f, ps, st }) {
+  const p = ps.pack, u = p.unit;
+  const ratio = ps.start ? ps.remaining / ps.start : 0;
+  const badge = st === 'empty' ? '<span class="badge empty">закончилось</span>' : st === 'low' ? '<span class="badge low">скоро закончится</span>' : '';
+  const quick = u === 'шт' ? [1, 2, 3] : [10, 50, 100];
+  const canUndo = ps.usages.some(x => !x.writeoff);
+  return `<div class="card ${st}" data-id="${it.id}">
+    <div class="item-head"><span class="item-name">${esc(it.name)}</span>${it.category ? `<span class="tag">${esc(it.category)}</span>` : ''}</div>
+    <div class="brand">${esc(p.brand || 'Без названия')} · ${fmt(p.amount)} ${u} · ${rub(p.price)}</div>
+    <div class="bar"><i style="width:${(ratio * 100).toFixed(1)}%"></i></div>
+    <div class="meta"><span>Остаток: <b>${fmt(ps.remaining)} ${u}</b> из ${fmt(ps.start)} ${badge}</span><span>${forecastText(f)}</span></div>
+    ${ps.remaining > 0 ? `<form class="use-row" data-act="use">
+      <input name="amount" type="number" inputmode="decimal" min="0.01" step="any" placeholder="Израсходовал, ${u}" required>
+      <button class="primary" type="submit">Списать</button></form>
+    <div class="quick">${quick.map(v => `<button class="small" data-act="quick" data-v="${v}">−${v} ${u}</button>`).join('')}</div>` : ''}
+    <div class="actions">
+      <button class="link" data-act="buy">🛒 Купил новую</button>
+      <button class="link" data-act="remind" ${f && f.basis !== 'empty' ? '' : 'disabled'}>🔔 Напомнить</button>
+      <button class="link" data-act="history">${ui.history.has(it.id) ? 'Скрыть историю' : 'История'}</button>
+      <button class="link" data-act="undo" ${canUndo ? '' : 'disabled'}>↩︎ Отменить списание</button>
+    </div>
+    ${ui.buy.has(it.id) ? buyFormHtml(it, ps) : ''}
+    ${ui.history.has(it.id) ? historyHtml(it) : ''}
+  </div>`;
+}
+
+function buyFormHtml(it, ps) {
+  const p = ps.pack;
+  return `<form class="subform grid" data-act="buy-submit" autocomplete="off">
+    <div class="full"><label>Бренд / товар</label><input name="brand" value="${esc(p.brand)}"></div>
+    <div><label>Объём</label><input name="amount" type="number" inputmode="decimal" min="0.01" step="any" required value="${p.amount}"></div>
+    <div><label>Единица</label><select name="unit">${['мл', 'г', 'шт'].map(x => `<option ${x === p.unit ? 'selected' : ''}>${x}</option>`).join('')}</select></div>
+    <div><label>Цена, ₽</label><input name="price" type="number" inputmode="decimal" min="0" step="any" required value="${p.price}"></div>
+    <div><label>Дата покупки</label><input name="date" type="date" required value="${todayInput()}"></div>
+    ${ps.remaining > 0 ? `<div class="section-label">Старая упаковка закончилась?</div>
+    <div class="radios">
+      <label><input type="radio" name="old" value="finished" required> Да, закончилась</label>
+      <label><input type="radio" name="old" value="left"> Нет, ещё осталось ~${fmt(ps.remaining)} ${p.unit} — прибавить к новой</label>
+    </div>
+    <div class="note">Если единица у новой упаковки другая, остаток старой прибавить не получится — он спишется.</div>` : ''}
+    <div class="full" style="display:flex;gap:8px"><button class="primary" type="submit" style="flex:1">Сохранить покупку</button>
+      <button type="button" data-act="buy-cancel">Отмена</button></div>
+  </form>`;
+}
+
+function historyHtml(it) {
+  const events = [
+    ...it.packs.map(p => ({ date: p.date, html: `<span>🛒 ${fmtDate(p.date)} · ${esc(p.brand || 'Без названия')}</span><b>+${fmt(p.amount)} ${p.unit} · ${rub(p.price)}</b>` })),
+    ...it.usages.map(u => { const p = it.packs.find(x => x.id === u.packId);
+      return { date: u.date, html: `<span>${fmtDate(u.date)}${u.writeoff ? ' · закончилась' : ''}</span><b>−${fmt(u.amount)} ${p ? p.unit : ''}</b>` }; })
+  ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 30);
+  const life = lifetimes(it);
+  return `<div class="history">
+    ${life.length ? `<div class="row"><span>Упаковка в среднем живёт</span><b>${Math.round(life.reduce((s, l) => s + l.days, 0) / life.length)} дн.</b></div>` : ''}
+    ${events.map(e => `<div class="row">${e.html}</div>`).join('')}
+    <div class="actions">
+      <button class="link" data-act="rename">Переименовать</button>
+      <button class="link" data-act="recat">Сменить категорию</button>
+      <button class="link" data-act="unbuy" ${it.packs.length > 1 ? '' : 'disabled'}>Отменить последнюю покупку</button>
+      <button class="link danger" data-act="delete">Удалить средство</button>
+    </div></div>`;
+}
+
+// ---------- вкладка «Статистика» ----------
+function monthKey(d) { d = new Date(d); return d.getFullYear() * 12 + d.getMonth(); }
+function purchases() {
+  return state.items.flatMap(it => it.packs.map(p => ({ item: it, pack: p, month: monthKey(p.date) })));
+}
+
+function renderStats() {
+  const nowKey = monthKey(Date.now());
+  const end = nowKey + ui.periodEnd * 12, start = end - 11;
+  const all = purchases();
+  const inPeriod = all.filter(x => x.month >= start && x.month <= end);
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const k = start + i;
+    return { k, label: MONTHS[k % 12], year: Math.floor(k / 12), sum: inPeriod.filter(x => x.month === k).reduce((s, x) => s + x.pack.price, 0) };
+  });
+  const total = months.reduce((s, m) => s + m.sum, 0);
+  const max = Math.max(...months.map(m => m.sum), 1);
+  const sel = months.find(m => m.k === ui.selMonth);
+  const periodLabel = `${MONTHS[start % 12]} ${Math.floor(start / 12)} — ${MONTHS[end % 12]} ${Math.floor(end / 12)}`;
+  const earliest = all.length ? Math.min(...all.map(x => x.month)) : nowKey;
+
+  // По категориям
+  const byCat = {};
+  inPeriod.forEach(x => { const c = x.item.category || 'Без категории'; byCat[c] = (byCat[c] || 0) + x.pack.price; });
+  const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const catMax = Math.max(...cats.map(c => c[1]), 1);
+
+  // Сравнение брендов внутри средства, ₽ в месяц
+  const cmp = state.items.map(it => {
+    const groups = {};
+    lifetimes(it).forEach(l => { const k = l.brand + ' (' + l.unit + ')'; (groups[k] ||= []).push(l); });
+    const rows = Object.entries(groups).map(([k, ls]) => ({ k, n: ls.length,
+      perMonth: ls.reduce((s, l) => s + l.perMonth, 0) / ls.length,
+      days: ls.reduce((s, l) => s + l.days, 0) / ls.length,
+      price: ls.reduce((s, l) => s + l.price, 0) / ls.length })).sort((a, b) => a.perMonth - b.perMonth);
+    return { it, rows };
+  }).filter(c => c.rows.length);
+
+  document.getElementById('statsView').innerHTML = `
+    <div class="period">
+      <button class="small" data-period="-1" ${start > earliest ? '' : 'disabled'} aria-label="Раньше">←</button>
+      <b>${periodLabel}</b>
+      <button class="small" data-period="1" ${ui.periodEnd < 0 ? '' : 'disabled'} aria-label="Позже">→</button>
+    </div>
+    <div class="card">
+      <div class="chart-head"><h2>Траты на покупки</h2>
+        <div class="readout">${sel ? `${sel.label} ${sel.year}: <b>${rub(sel.sum)}</b>` : `за 12 мес.: <b>${rub(total)}</b>`}</div></div>
+      <div class="cols" role="list">${months.map(m => `<button role="listitem" data-month="${m.k}" class="${m.k === ui.selMonth ? 'sel' : ''}"
+          title="${m.label} ${m.year}: ${rub(m.sum)}" aria-label="${m.label} ${m.year}: ${rub(m.sum)}">
+          <i style="height:${(m.sum / max * 100).toFixed(1)}%"></i></button>`).join('')}</div>
+      <div class="col-labels">${months.map(m => `<span>${m.label}</span>`).join('')}</div>
+      <div class="muted" style="font-size:13px;margin-top:8px">Нажмите на столбик, чтобы увидеть сумму. В среднем ${rub(total / Math.max(1, end - Math.max(start, earliest) + 1))} в месяц.</div>
+    </div>
+    <div class="card">
+      <h2>По категориям</h2>
+      ${cats.length ? cats.map(([c, v]) => `<div class="hbar"><span>${esc(c)}</span>
+        <span class="track"><i style="width:${(v / catMax * 100).toFixed(1)}%"></i></span>
+        <span class="val">${rub(v)}</span></div>`).join('') : '<div class="muted">Покупок за период нет</div>'}
+    </div>
+    <div class="card">
+      <h2>Что выгоднее: ₽ в месяц</h2>
+      ${cmp.length ? cmp.map(({ it, rows }) => {
+        const m = Math.max(...rows.map(r => r.perMonth), 1);
+        return `<div class="cmp"><div class="cmp-title">${esc(it.name)}</div>
+        ${rows.map((r, i) => `<div class="hbar"><span>${esc(r.k)}${i === 0 && rows.length > 1 ? '<span class="best">выгоднее</span>' : ''}
+            <span class="sub">${rub(r.price)} · живёт ~${Math.round(r.days)} дн.${r.n > 1 ? ' · упаковок: ' + r.n : ''}</span></span>
+          <span class="track"><i style="width:${(r.perMonth / m * 100).toFixed(1)}%"></i></span>
+          <span class="val">${rub(r.perMonth)}</span></div>`).join('')}</div>`;
+      }).join('') : '<div class="muted">Появится, когда закончится хотя бы одна упаковка (нажмите «Купил новую» → «Да, закончилась»).</div>'}
+    </div>`;
+}
+
+function render() {
+  renderCats();
+  if (ui.tab === 'stock') { renderSoon(); renderList(); } else renderStats();
+}
+
+// ---------- действия ----------
+function useAmount(item, amount) {
+  if (!(amount > 0)) return toast('Введите количество больше нуля');
+  const ps = packState(item);
+  if (amount > ps.remaining + 1e-9) {
+    if (!confirm(`Остаток ${fmt(ps.remaining)} ${ps.pack.unit}, а вы списываете ${fmt(amount)}. Списать весь остаток?`)) return;
+    amount = ps.remaining;
+  }
+  item.usages.push({ id: uid(), date: new Date().toISOString(), amount, packId: ps.pack.id });
+  save(); render();
+  toast(`Списано ${fmt(amount)} ${ps.pack.unit}, осталось ${fmt(packState(item).remaining)}`);
+}
+
+function buy(item, form) {
+  const amount = num(form.amount.value), price = num(form.price.value);
+  if (!(amount > 0) || !(price >= 0)) return toast('Проверьте объём и цену');
+  const ps = packState(item), old = ps.pack, date = fromInput(form.date.value);
+  if (new Date(date) < new Date(old.date)) return toast('Дата раньше предыдущей покупки');
+  const unit = form.unit.value;
+  const choice = ps.remaining > 0 ? (form.old.value || 'finished') : 'finished';
+  const pack = { id: uid(), brand: form.brand.value.trim(), unit, amount, price, date };
+  old.finishedAt = date;
+  if (choice === 'left' && unit === old.unit) {
+    old.merged = true;
+    pack.carry = ps.remaining;
+  } else if (ps.remaining > 0) {
+    item.usages.push({ id: uid(), date, amount: ps.remaining, packId: old.id, writeoff: true });
+  }
+  item.packs.push(pack);
+  ui.buy.delete(item.id);
+  save(); render(); toast('Покупка сохранена');
+}
+
+function unbuy(item) {
+  if (item.packs.length < 2) return;
+  const last = curPack(item);
+  if (!confirm(`Отменить покупку «${last.brand || 'Без названия'}» от ${fmtDate(last.date)}? Списания по ней тоже удалятся.`)) return;
+  item.packs.pop();
+  const prev = curPack(item);
+  item.usages = item.usages.filter(u => u.packId !== last.id && !(u.packId === prev.id && u.writeoff));
+  delete prev.finishedAt; delete prev.merged;
+  save(); render();
+}
+
+// Событие для Календаря iPhone (.ics)
+function remind(item) {
+  const f = forecast(item);
+  if (!f) return toast('Пока нет данных для прогноза — внесите расход');
+  const d = new Date(Date.now() + (f.days - REMIND_BEFORE) * DAY);
+  d.setHours(REMIND_HOUR, 0, 0, 0);
+  if (d < new Date()) { d.setTime(Date.now()); d.setHours(REMIND_HOUR, 0, 0, 0); if (d < new Date()) d.setDate(d.getDate() + 1); }
+  const pad = n => String(n).padStart(2, '0');
+  const local = x => `${x.getFullYear()}${pad(x.getMonth() + 1)}${pad(x.getDate())}T${pad(x.getHours())}${pad(x.getMinutes())}00`;
+  const icsText = s => String(s).replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
+  const brand = curPack(item).brand;
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//himiya//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+    `UID:${uid()}@himiya`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
+    `DTSTART:${local(d)}`, 'DURATION:PT15M',
+    `SUMMARY:${icsText('Купить: ' + item.name + (brand ? ' (' + brand + ')' : ''))}`,
+    `DESCRIPTION:${icsText('По прогнозу закончится примерно через ' + REMIND_BEFORE + ' дней.')}`,
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Купить бытовую химию', 'TRIGGER:PT0M', 'END:VALARM',
+    'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  const file = new File([ics], 'kupit.ics', { type: 'text/calendar' });
+  const url = URL.createObjectURL(file);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'kupit.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  toast(`Напоминание на ${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })}, ${REMIND_HOUR}:00`);
+}
+
+// ---------- обработчики ----------
+document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
+  ui.tab = b.dataset.tab;
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x === b));
+  document.getElementById('stockView').hidden = ui.tab !== 'stock';
+  document.getElementById('statsView').hidden = ui.tab !== 'stats';
+  render();
+});
+
+document.getElementById('fCat').addEventListener('change', e => {
+  if (e.target.value !== '__new') return;
+  const name = addCategory();
+  renderCats();
+  e.target.value = name || '';
+});
+
+document.getElementById('addForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = document.getElementById('fName').value.trim();
+  const amount = num(document.getElementById('fAmount').value);
+  const price = num(document.getElementById('fPrice').value);
+  if (!name || !(amount > 0) || !(price >= 0)) return toast('Проверьте поля');
+  const cat = document.getElementById('fCat').value;
+  state.items.push({
+    id: uid(), name, category: cat === '__new' ? '' : cat, createdAt: new Date().toISOString(), usages: [],
+    packs: [{ id: uid(), brand: document.getElementById('fBrand').value.trim(), unit: document.getElementById('fUnit').value,
+      amount, price, date: fromInput(document.getElementById('fDate').value) }]
+  });
+  save(); e.target.reset(); document.getElementById('fDate').value = todayInput();
+  document.getElementById('addBox').open = false; render();
+  toast('Добавлено: ' + name);
+});
+
+const list = document.getElementById('list');
+list.addEventListener('submit', e => {
+  e.preventDefault();
+  const item = state.items.find(i => i.id === e.target.closest('[data-id]').dataset.id);
+  if (e.target.dataset.act === 'use') useAmount(item, num(e.target.amount.value));
+  if (e.target.dataset.act === 'buy-submit') buy(item, e.target);
+});
+list.addEventListener('click', e => {
+  const btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  const id = btn.closest('[data-id]').dataset.id;
+  const item = state.items.find(i => i.id === id);
+  const toggle = set => { set.has(id) ? set.delete(id) : set.add(id); renderList(); };
+  switch (btn.dataset.act) {
+    case 'quick': useAmount(item, num(btn.dataset.v)); break;
+    case 'buy': toggle(ui.buy); break;
+    case 'buy-cancel': ui.buy.delete(id); renderList(); break;
+    case 'history': toggle(ui.history); break;
+    case 'remind': remind(item); break;
+    case 'undo': {
+      const ps = packState(item);
+      const u = [...ps.usages].reverse().find(x => !x.writeoff);
+      if (!u) break;
+      item.usages = item.usages.filter(x => x !== u);
+      save(); render(); toast(`Отменено списание ${fmt(u.amount)} ${ps.pack.unit}`);
+      break;
+    }
+    case 'rename': {
+      const n = (prompt('Новое название:', item.name) || '').trim();
+      if (n) { item.name = n; save(); render(); }
+      break;
+    }
+    case 'recat': {
+      const opts = ['Без категории', ...state.categories];
+      const ans = prompt('Номер категории:\n' + opts.map((c, i) => `${i} — ${c}`).join('\n'), String(Math.max(0, opts.indexOf(item.category))));
+      const i = parseInt(ans, 10);
+      if (i >= 0 && i < opts.length) { item.category = i === 0 ? '' : opts[i]; save(); render(); }
+      break;
+    }
+    case 'unbuy': unbuy(item); break;
+    case 'delete':
+      if (confirm(`Удалить «${item.name}» вместе со всей историей?`)) {
+        state.items = state.items.filter(i => i.id !== id); save(); render();
+      }
+      break;
+  }
+});
+
+document.getElementById('statsView').addEventListener('click', e => {
+  const m = e.target.closest('[data-month]'), p = e.target.closest('[data-period]');
+  if (m) { const k = +m.dataset.month; ui.selMonth = ui.selMonth === k ? null : k; renderStats(); }
+  if (p) { ui.periodEnd += +p.dataset.period; ui.selMonth = null; renderStats(); }
+});
+
+document.getElementById('search').addEventListener('input', renderList);
+document.getElementById('filterCat').addEventListener('change', renderList);
+
+document.getElementById('addCatBtn').onclick = () => { addCategory(); render(); };
+document.getElementById('catList').addEventListener('click', e => {
+  const r = e.target.dataset.catRename, d = e.target.dataset.catDel;
+  if (r !== undefined) {
+    const old = state.categories[r], n = (prompt('Новое название:', old) || '').trim();
+    if (!n || n === old) return;
+    state.categories[r] = n;
+    state.items.forEach(it => { if (it.category === old) it.category = n; });
+  } else if (d !== undefined) {
+    const c = state.categories[d];
+    const cnt = state.items.filter(it => it.category === c).length;
+    if (!confirm(`Удалить категорию «${c}»?${cnt ? ` ${cnt} средств останутся без категории.` : ''}`)) return;
+    state.categories.splice(d, 1);
+    state.items.forEach(it => { if (it.category === c) it.category = ''; });
+  } else return;
+  save(); render();
+});
+
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `himiya-${todayInput()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+});
+document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const data = JSON.parse(await file.text());
+    if (!Array.isArray(data.items)) throw 0;
+    if (!confirm(`Заменить текущие данные (${state.items.length} средств) данными из файла (${data.items.length})?`)) return;
+    state = { categories: data.categories || [], items: data.items };
+    save(); render(); toast('Импорт выполнен');
+  } catch { toast('Файл не подходит'); }
+  e.target.value = '';
+});
+
+document.getElementById('fDate').value = todayInput();
+renderBanner();
+render();
+</script>
+</body>
+</html>
