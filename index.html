@@ -3,30 +3,33 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f2f3f5" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0b0d0d" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e0e0d" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Химия">
+<meta name="apple-mobile-web-app-title" content="Запасы">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.webmanifest">
-<title>Учёт бытовой химии</title>
+<title>Запасы: химия и уход</title>
 <style>
   :root {
-    --bg: #f2f3f5; --card: #ffffff; --field: #f4f6f6; --text: #111816; --muted: #6b7673; --faint: #9aa4a1;
-    --line: #e6e9e8; --accent: #0d7c6e; --accent-tonal: #e2f3f0; --accent-ink: #0a5f55; --on-accent: #ffffff;
-    --warn: #c2410c; --warn-tonal: #fff0e5; --danger: #c81e1e; --danger-tonal: #fde8e8;
-    --shadow: 0 1px 2px rgba(16, 24, 40, .04), 0 2px 8px rgba(16, 24, 40, .05);
-    --bar-bg: rgba(248, 249, 250, .82);
+    --bg: #f6f5f2; --card: #ffffff; --field: #f3f2ef; --text: #1b1a19; --muted: #6e6c67; --faint: #a3a19b;
+    --line: #e7e5e0; --accent: #5b4fe0; --accent-tonal: #eeecfd; --accent-ink: #4035b8; --on-accent: #ffffff;
+    --warn: #b9520a; --warn-tonal: #fdf0e3; --danger: #c8323a; --danger-tonal: #fce8e9;
+    --shadow: 0 1px 2px rgba(27, 26, 25, .04), 0 2px 10px rgba(27, 26, 25, .05);
+    --bar-bg: rgba(250, 249, 247, .84);
+    /* цвета категорий: проверенная палитра, порядок важен для различимости */
+    --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100; --c5: #e87ba4; --c6: #008300; --c7: #4a3aa7; --c8: #e34948;
     --r: 18px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0b0d0d; --card: #171a1a; --field: #202525; --text: #eef2f1; --muted: #8f9b98; --faint: #5f6a67;
-      --line: #262c2b; --accent: #34d1bc; --accent-tonal: #12312d; --accent-ink: #7ee6d6; --on-accent: #04201c;
-      --warn: #fb923c; --warn-tonal: #3a2210; --danger: #f87171; --danger-tonal: #3a1616;
-      --shadow: none; --bar-bg: rgba(18, 21, 21, .82);
+      --bg: #0e0e0d; --card: #1a1a19; --field: #242422; --text: #f3f2ef; --muted: #a3a19b; --faint: #6b6964;
+      --line: #2c2c2a; --accent: #958cff; --accent-tonal: #25224a; --accent-ink: #bdb7ff; --on-accent: #15123a;
+      --warn: #f59e4c; --warn-tonal: #3a2512; --danger: #f87171; --danger-tonal: #3b1719;
+      --shadow: none; --bar-bg: rgba(20, 20, 19, .84);
+      --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500; --c5: #d55181; --c6: #008300; --c7: #9085e9; --c8: #e66767;
     }
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -81,6 +84,9 @@
   .chips::-webkit-scrollbar { display: none; }
   .chip { flex: none; height: 34px; padding: 0 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); font-size: 14px; font-weight: 500; color: var(--muted); }
   .chip.on { background: var(--text); color: var(--bg); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; flex: none; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); margin-bottom: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* Карточка средства */
   .item { background: var(--card); border-radius: var(--r); box-shadow: var(--shadow); padding: 14px; margin-bottom: 10px; }
@@ -216,7 +222,7 @@
 <div class="wrap">
   <section id="stockView">
     <header class="top">
-      <div><h1>Химия</h1><p id="summary"></p></div>
+      <div><h1>Запасы</h1><p id="summary"></p></div>
       <button class="fab" id="addBtn" aria-label="Добавить средство"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
     </header>
     <div id="banner"></div>
@@ -284,12 +290,24 @@ const ui = { tab: 'stock', cat: '*', periodEnd: 0, selMonth: null, sheet: null }
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY));
-    if (s && Array.isArray(s.items)) return { categories: s.categories || [], items: s.items };
+    if (s && Array.isArray(s.items)) return withColors({ categories: s.categories || [], catColors: s.catColors || {}, items: s.items });
     const v1 = JSON.parse(localStorage.getItem('chem-inventory-v1'));
     if (v1 && Array.isArray(v1.items)) return migrateV1(v1);
   } catch {}
-  return { categories: [], items: [] };
+  return { categories: [], catColors: {}, items: [] };
 }
+// Цвет закрепляется за категорией при создании и не меняется, даже если другие удалить
+function withColors(st) {
+  st.categories.forEach(c => { if (!st.catColors[c]) st.catColors[c] = freeSlot(st); });
+  return st;
+}
+function freeSlot(st) {
+  const used = new Set(Object.values(st.catColors));
+  for (let i = 1; i <= 8; i++) if (!used.has(i)) return i;
+  return 0; // больше 8 категорий — нейтральный серый
+}
+const catColor = c => c && state.catColors[c] ? `var(--c${state.catColors[c]})` : 'var(--faint)';
+const catDot = c => `<span class="dot" style="background:${catColor(c)}"></span>`;
 function migrateV1(v1) {
   const items = v1.items.map(it => {
     const packs = it.packs.map(p => ({ id: uid(), brand: '', unit: it.unit, amount: p.amount, price: p.price, date: p.date }));
@@ -299,7 +317,7 @@ function migrateV1(v1) {
     return { id: it.id, name: it.name, category: it.category || '', createdAt: it.createdAt, packs,
       usages: it.usages.map(u => ({ ...u, packId: last.id })) };
   });
-  return { categories: [...new Set(items.map(i => i.category).filter(Boolean))], items };
+  return withColors({ categories: [...new Set(items.map(i => i.category).filter(Boolean))], catColors: {}, items });
 }
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); }
@@ -412,16 +430,16 @@ function catOptions(selected, withNew = true) {
 function addCategory() {
   const name = (prompt('Название категории:') || '').trim();
   if (!name) return null;
-  if (!state.categories.includes(name)) { state.categories.push(name); save(); }
+  if (!state.categories.includes(name)) { state.categories.push(name); state.catColors[name] = freeSlot(state); save(); }
   return name;
 }
 
 function sheetAdd() {
   openSheet('Новое средство', `<form id="addForm" autocomplete="off">
-    <div class="field"><label>Для чего</label><input name="name" required placeholder="Например, средство для посуды" data-autofocus></div>
+    <div class="field"><label>Для чего</label><input name="name" required placeholder="Например, шампунь или средство для посуды" data-autofocus></div>
     <div class="field"><label>Категория</label><select name="cat" class="cat-select">${catOptions('')}</select></div>
     <div class="divider"></div>
-    <div class="field"><label>Что купили</label><input name="brand" placeholder="Бренд, например Fairy Лимон"></div>
+    <div class="field"><label>Что купили</label><input name="brand" placeholder="Бренд, например Head &amp; Shoulders"></div>
     <div class="field"><span class="field-label">Единица</span>${unitSeg('unit', 'мл')}</div>
     <div class="row">
       <div class="field"><label>Объём</label><input name="amount" type="number" inputmode="decimal" min="0.01" step="any" required placeholder="500"></div>
@@ -434,7 +452,10 @@ function sheetAdd() {
 
 function sheetUse(item) {
   const ps = packState(item), u = ps.pack.unit;
-  const quick = u === 'шт' ? [1, 2, 3, 5] : [10, 25, 50, 100];
+  const defaults = u === 'шт' ? [1, 2, 3, 5] : [5, 10, 25, 50];
+  const recent = item.usages.filter(x => !x.writeoff && x.packId === ps.pack.id || !x.writeoff && item.packs.find(q => q.id === x.packId)?.unit === u)
+    .slice(-10).reverse().map(x => +x.amount.toFixed(1));
+  const quick = [...new Set([...recent, ...defaults])].slice(0, 4).sort((a, b) => a - b);
   openSheet(`${esc(item.name)}<small>Осталось ${fmt(ps.remaining)} ${u}</small>`, `<form id="useForm" autocomplete="off">
     <div class="big-input"><input name="amount" type="number" inputmode="decimal" min="0.01" step="any" required placeholder="0" aria-label="Сколько израсходовали" data-autofocus><span>${u}</span></div>
     <div class="quick">${quick.map(v => `<button type="button" class="btn plain" data-quick="${v}">${v} ${u}</button>`).join('')}</div>
@@ -523,7 +544,7 @@ function renderStock() {
   const rows = state.items.map(it => ({ it, f: forecast(it), ps: packState(it), st: status(it) }));
   const soon = rows.filter(r => r.st).sort((a, b) => (a.f?.days ?? 0) - (b.f?.days ?? 0));
   const n = state.items.length;
-  document.getElementById('summary').textContent = !n ? 'Учёт бытовой химии'
+  document.getElementById('summary').textContent = !n ? 'Бытовая химия и уход'
     : `${n} ${plural(n, 'средство', 'средства', 'средств')} · ` + (soon.length ? `${soon.length} скоро закончится` : 'всего хватает');
 
   document.getElementById('soon').innerHTML = soon.length ? `<div class="soon"><h2>${ICON.warn} Скоро закончится</h2>
@@ -536,7 +557,7 @@ function renderStock() {
   const usedCats = state.categories.filter(c => state.items.some(i => i.category === c));
   if (ui.cat !== '*' && !usedCats.includes(ui.cat)) ui.cat = '*';
   chips.hidden = usedCats.length < 2;
-  chips.innerHTML = ['*', ...usedCats].map(c => `<button class="chip ${c === ui.cat ? 'on' : ''}" data-cat="${esc(c)}">${c === '*' ? 'Все' : esc(c)}</button>`).join('');
+  chips.innerHTML = ['*', ...usedCats].map(c => `<button class="chip ${c === ui.cat ? 'on' : ''}" data-cat="${esc(c)}">${c === '*' ? 'Все' : catDot(c) + esc(c)}</button>`).join('');
 
   const q = search.value.trim().toLowerCase();
   const list = rows
@@ -547,7 +568,7 @@ function renderStock() {
   const el = document.getElementById('list');
   if (!n) {
     el.innerHTML = `<div class="card empty-state"><div class="emoji">🧴</div><h2>Пока пусто</h2>
-      <p>Добавьте первое средство — например, гель для стирки или средство для посуды.</p>
+      <p>Добавьте первое средство — шампунь, гель для стирки, крем или средство для посуды.</p>
       <button class="btn primary" data-empty-add style="min-height:46px;padding:0 22px">Добавить средство</button></div>`;
     return;
   }
@@ -558,6 +579,7 @@ function renderStock() {
       <button class="item-main" data-act="details">
         ${ring(ratio)}
         <div class="item-text">
+          ${it.category ? `<div class="eyebrow">${catDot(it.category)}${esc(it.category)}</div>` : ''}
           <div class="item-title">${esc(it.name)}</div>
           <div class="item-sub"><b>${fmt(ps.remaining)}</b> из ${fmt(ps.start)} ${p.unit} · ${esc(p.brand || 'Без названия')}</div>
           <span class="pill ${f ? st : 'none'}">${forecastShort(f)}</span>
@@ -629,7 +651,7 @@ function renderStats() {
     <div class="card">
       <div class="chart-head"><h2>По категориям</h2></div>
       ${cats.length ? cats.map(([c, v]) => `<div class="hbar"><span>${esc(c)}</span>
-        <span class="track"><i style="width:${(v / catMax * 100).toFixed(1)}%"></i></span><span class="v">${rub(v)}</span></div>`).join('')
+        <span class="track"><i style="width:${(v / catMax * 100).toFixed(1)}%;background:${catColor(c === 'Без категории' ? '' : c)}"></i></span><span class="v">${rub(v)}</span></div>`).join('')
         : '<div class="muted">Покупок за период нет</div>'}
     </div>
     <div class="card">
@@ -648,7 +670,7 @@ function renderMore() {
   document.getElementById('catList').innerHTML = state.categories.length
     ? state.categories.map((c, i) => {
         const cnt = state.items.filter(it => it.category === c).length;
-        return `<div class="list-row"><span>${esc(c)}<small>${cnt} ${plural(cnt, 'средство', 'средства', 'средств')}</small></span>
+        return `<div class="list-row"><span>${catDot(c)}${esc(c)}<small>${cnt} ${plural(cnt, 'средство', 'средства', 'средств')}</small></span>
           <span><button data-cat-rename="${i}">Изменить</button><button class="del" data-cat-del="${i}">Удалить</button></span></div>`;
       }).join('')
     : '<div class="list-row muted">Категорий пока нет</div>';
@@ -722,12 +744,12 @@ function remind(item) {
   const local = x => `${x.getFullYear()}${pad(x.getMonth() + 1)}${pad(x.getDate())}T${pad(x.getHours())}${pad(x.getMinutes())}00`;
   const icsText = s => String(s).replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
   const brand = curPack(item).brand;
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//himiya//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//zapasy//RU', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT',
     `UID:${uid()}@himiya`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`,
     `DTSTART:${local(d)}`, 'DURATION:PT15M',
     `SUMMARY:${icsText('Купить: ' + item.name + (brand ? ' (' + brand + ')' : ''))}`,
     `DESCRIPTION:${icsText('По прогнозу закончится примерно через ' + REMIND_BEFORE + ' дней.')}`,
-    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Купить бытовую химию', 'TRIGGER:PT0M', 'END:VALARM',
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:Пора докупить', 'TRIGGER:PT0M', 'END:VALARM',
     'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
   const file = new File([ics], 'kupit.ics', { type: 'text/calendar' });
   const url = URL.createObjectURL(file);
@@ -820,12 +842,14 @@ document.getElementById('catList').addEventListener('click', e => {
     const old = state.categories[r], n = (prompt('Новое название:', old) || '').trim();
     if (!n || n === old) return;
     state.categories[r] = n;
+    state.catColors[n] = state.catColors[old]; delete state.catColors[old];
     state.items.forEach(it => { if (it.category === old) it.category = n; });
   } else if (d !== undefined) {
     const c = state.categories[d];
     const cnt = state.items.filter(it => it.category === c).length;
     if (!confirm(`Удалить категорию «${c}»?${cnt ? ` ${cnt} ${plural(cnt, 'средство останется', 'средства останутся', 'средств останутся')} без категории.` : ''}`)) return;
     state.categories.splice(d, 1);
+    delete state.catColors[c];
     state.items.forEach(it => { if (it.category === c) it.category = ''; });
   } else return;
   save(); renderMore();
@@ -846,7 +870,7 @@ document.getElementById('importFile').addEventListener('change', async e => {
     const data = JSON.parse(await file.text());
     if (!Array.isArray(data.items)) throw 0;
     if (!confirm(`Заменить текущие данные (${state.items.length}) данными из файла (${data.items.length})?`)) return;
-    state = { categories: data.categories || [], items: data.items };
+    state = withColors({ categories: data.categories || [], catColors: data.catColors || {}, items: data.items });
     save(); render(); toast('Импорт выполнен');
   } catch { toast('Файл не подходит'); }
   e.target.value = '';

@@ -1,9 +1,15 @@
 {
-  "name": "Учёт бытовой химии",
-  "short_name": "Химия",
+  "name": "Запасы: химия и уход",
+  "short_name": "Запасы",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#f5f7f7",
-  "theme_color": "#0f766e",
-  "icons": [{ "src": "icon.png", "sizes": "180x180", "type": "image/png" }]
+  "background_color": "#f6f5f2",
+  "theme_color": "#5b4fe0",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
 }
