@@ -487,6 +487,65 @@ function sheetBuy(item) {
   </form>`, { kind: 'buy', id: item.id });
 }
 
+// Правка покупки. Возвращает текст ошибки или null; при успехе меняет данные (без сохранения).
+function editPack(item, p, { brand = p.brand, amount = p.amount, price = p.price, dateInput }) {
+  const i = item.packs.indexOf(p), prev = item.packs[i - 1], next = item.packs[i + 1];
+  if (!(amount > 0)) return 'Проверьте объём';
+  if (!(price >= 0)) return 'Проверьте цену';
+  // Дату меняем, только если её правда поменяли — иначе сохраняем точное время покупки
+  const date = !dateInput || dateInput === toInput(p.date) ? p.date : fromInput(dateInput);
+  if (date !== p.date) {
+    const own = item.usages.filter(u => u.packId === p.id && !u.writeoff).map(u => u.date).sort();
+    const prevUses = prev ? item.usages.filter(u => u.packId === prev.id && !u.writeoff).map(u => u.date).sort() : [];
+    if (new Date(date) > new Date()) return 'Дата покупки не может быть в будущем';
+    if (prev && dateInput < toInput(prev.date)) return `Раньше предыдущей покупки (${fmtDate(prev.date)})`;
+    if (next && dateInput > toInput(next.date)) return `Позже следующей покупки (${fmtDate(next.date)})`;
+    if (own.length && dateInput > toInput(own[0])) return `Есть списания раньше этой даты (${fmtDate(own[0])})`;
+    if (prevUses.length && dateInput < toInput(prevUses[prevUses.length - 1])) return `У прошлой упаковки есть списания позже (${fmtDate(prevUses[prevUses.length - 1])})`;
+  }
+  // Объём: остаток упаковки не может уйти в минус
+  const start = amount + (p.carry || 0);
+  const used = item.usages.filter(u => u.packId === p.id && !u.writeoff).reduce((s, u) => s + u.amount, 0);
+  if (used > start + 1e-9) return `По этой упаковке уже списано ${fmt(used)} ${p.unit} — объём не может быть меньше`;
+
+  if (date !== p.date) {
+    // предыдущая упаковка закончилась в день этой покупки — сдвигаем вместе
+    if (prev) { prev.finishedAt = date; item.usages.forEach(u => { if (u.packId === prev.id && u.writeoff) u.date = date; }); }
+    p.date = date;
+  }
+  if (amount !== p.amount && p.finishedAt) {
+    // упаковка уже закончилась: пересчитываем, сколько от неё осталось к следующей покупке
+    const left = start - used;
+    if (p.merged) next.carry = left;
+    else {
+      item.usages = item.usages.filter(u => !(u.packId === p.id && u.writeoff));
+      if (left > 1e-9) item.usages.push({ id: uid(), date: p.finishedAt, amount: left, packId: p.id, writeoff: true });
+    }
+  }
+  Object.assign(p, { brand, amount, price });
+  return null;
+}
+
+function sheetPack(item, packId) {
+  const p = item.packs.find(x => x.id === packId);
+  if (!p) return sheetDetails(item);
+  const isLast = p === curPack(item);
+  openSheet(`Покупка<small>${esc(item.name)}</small>`, `<form id="packForm" autocomplete="off">
+    <div class="field"><label>Что купили</label><input name="brand" value="${esc(p.brand)}" placeholder="Бренд"></div>
+    <div class="row">
+      <div class="field"><label>Объём, ${p.unit}</label><input name="amount" type="number" inputmode="decimal" min="0.01" step="any" required value="${p.amount}"></div>
+      <div class="field"><label>Цена, ₽</label><input name="price" type="number" inputmode="decimal" min="0" step="any" required value="${p.price}"></div>
+    </div>
+    <div class="field"><label>Дата покупки</label><input name="date" type="date" required value="${toInput(p.date)}"></div>
+    ${p.carry ? `<p class="hint">К этой упаковке прибавлен остаток прошлой: ${fmt(p.carry)} ${p.unit}.</p>` : ''}
+    <div class="stack">
+      <button class="btn primary block" type="submit">Сохранить</button>
+      ${isLast && item.packs.length > 1 ? '<button class="btn danger" type="button" data-do="unbuy">Удалить покупку</button>' : ''}
+      <button class="btn plain" type="button" data-do="back">Назад</button>
+    </div>
+  </form>`, { kind: 'pack', id: item.id, pack: p.id });
+}
+
 function sheetUsage(item, usageId) {
   const u = item.usages.find(x => x.id === usageId);
   if (!u) return sheetDetails(item);
@@ -527,7 +586,7 @@ function sheetDetails(item) {
   const perMonth = life.length ? life.reduce((s, l) => s + l.perMonth, 0) / life.length : null;
   const canUndo = ps.usages.some(x => !x.writeoff);
   const events = [
-    ...item.packs.map(x => ({ date: x.date, html: `<span>Покупка · ${esc(x.brand || 'Без названия')}<small>${fmtDate(x.date)} · ${rub(x.price)}</small></span><span class="r plus">+${fmt(x.amount)} ${x.unit}</span>` })),
+    ...item.packs.map(x => ({ date: x.date, pack: x.id, html: `<span>Покупка · ${esc(x.brand || 'Без названия')}<small>${fmtDate(x.date)} · ${rub(x.price)}</small></span><span class="r plus" style="margin-left:auto">+${fmt(x.amount)} ${x.unit}</span><span class="chev">${ICON.chev}</span>` })),
     ...item.usages.map(u => { const x = item.packs.find(q => q.id === u.packId);
       return { date: u.date, usage: u.id, html: `<span>${u.writeoff ? 'Закончилась' : 'Расход'}<small>${fmtDate(u.date)}</small></span><span class="r" style="margin-left:auto">−${fmt(u.amount)} ${x ? x.unit : ''}</span><span class="chev">${ICON.chev}</span>` }; })
   ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 40);
@@ -545,8 +604,8 @@ function sheetDetails(item) {
     <div class="field-label">История</div>
     <div class="list">${events.map(e => e.usage
       ? `<button class="list-row" data-usage="${e.usage}">${e.html}</button>`
-      : `<div class="list-row">${e.html}</div>`).join('')}</div>
-    <p class="hint" style="margin-top:-8px">Нажмите на «Расход» или «Закончилась», чтобы исправить.</p>
+      : `<button class="list-row" data-pack="${e.pack}">${e.html}</button>`).join('')}</div>
+    <p class="hint" style="margin-top:-8px">Нажмите на любую запись, чтобы исправить.</p>
     <div class="field-label">Изменить</div>
     <form id="editForm" autocomplete="off">
       <div class="field"><label>Название</label><input name="name" required value="${esc(item.name)}"></div>
@@ -844,6 +903,8 @@ body.addEventListener('click', e => {
   if (q) { body.querySelector('[name=amount]').value = q.dataset.quick; return; }
   const h = e.target.closest('[data-usage]');
   if (h) return sheetUsage(item, h.dataset.usage);
+  const pk = e.target.closest('[data-pack]');
+  if (pk) return sheetPack(item, pk.dataset.pack);
   const d = e.target.closest('[data-do]'); if (!d) return;
   switch (d.dataset.do) {
     case 'remind': remind(item); break;
@@ -868,26 +929,16 @@ body.addEventListener('submit', e => {
   const f = e.target, ctx = ui.sheet, item = ctx.id && findItem(ctx.id);
   if (f.id === 'useForm') useAmount(item, num(f.amount.value));
   if (f.id === 'usageForm') saveUsage(item, ctx.usage, f);
+  if (f.id === 'packForm') {
+    const err = editPack(item, item.packs.find(x => x.id === ctx.pack),
+      { brand: f.brand.value.trim(), amount: num(f.amount.value), price: num(f.price.value), dateInput: f.date.value });
+    if (err) return toast(err);
+    save(); render(); sheetDetails(item); toast('Покупка исправлена');
+  }
   if (f.id === 'buyForm') buy(item, f);
   if (f.id === 'editForm') {
-    const p = curPack(item), prev = item.packs[item.packs.length - 2];
-    const price = num(f.price.value);
-    if (!(price >= 0)) return toast('Проверьте цену');
-    // Дату меняем, только если её правда поменяли — иначе сохраняем точное время покупки
-    const date = f.date.value === toInput(p.date) ? p.date : fromInput(f.date.value);
-    if (date !== p.date) {
-      const firstUse = item.usages.filter(u => u.packId === p.id).map(u => u.date).sort()[0];
-      if (new Date(date) > new Date()) return toast('Дата покупки не может быть в будущем');
-      if (prev && new Date(date) < new Date(prev.date)) return toast(`Дата раньше предыдущей покупки (${fmtDate(prev.date)})`);
-      if (firstUse && new Date(date) > new Date(firstUse)) return toast(`Есть списания раньше этой даты (${fmtDate(firstUse)})`);
-      // предыдущая упаковка закончилась в день этой покупки — сдвигаем вместе
-      if (prev) {
-        prev.finishedAt = date;
-        item.usages.forEach(u => { if (u.packId === prev.id && u.writeoff) u.date = date; });
-      }
-      p.date = date;
-    }
-    p.price = price;
+    const err = editPack(item, curPack(item), { price: num(f.price.value), dateInput: f.date.value });
+    if (err) return toast(err);
     item.name = f.name.value.trim() || item.name;
     item.category = f.cat.value === '__new' ? '' : f.cat.value;
     save(); render(); sheetDetails(item); toast('Сохранено');
