@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0e0e0d" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -34,7 +34,9 @@
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   [hidden] { display: none !important; }
-  html { background: var(--bg); }
+  html { background: var(--bg); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  /* без увеличения по двойному тапу */
+  html, body, button, input, select, label { touch-action: manipulation; }
   body { margin: 0; background: var(--bg); color: var(--text);
     font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased; }
@@ -282,7 +284,7 @@
 <div class="update" id="update" hidden><span>Вышла новая версия</span><button id="updateBtn">Обновить</button></div>
 
 <script>
-const VERSION = '2026.10.04-8';
+const VERSION = '2026.10.05-1';
 const KEY = 'chem-inventory-v2';
 const SOON_DAYS = 7;        // блок «Скоро закончится»
 const REMIND_BEFORE = 5;    // событие в Календаре за N дней до конца
@@ -1047,6 +1049,10 @@ document.getElementById('version').textContent = VERSION;
 document.getElementById('checkUpdate').onclick = () => checkUpdate(true);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
 if (/[?&]v=/.test(location.search)) history.replaceState(null, '', location.pathname);
+
+// Без масштабирования: Safari игнорирует user-scalable=no, поэтому гасим жест «щипок» вручную
+['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 
 renderBanner();
 render();
